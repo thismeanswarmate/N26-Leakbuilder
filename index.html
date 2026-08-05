@@ -164,6 +164,11 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .card.folded .card-body{padding:7px 12px 8px}
 .card.folded .wtable{margin-top:0}
 .card.folded .foldnote{margin:0;font-size:12px;color:var(--text-dim);font-style:italic}
+.card.folded .foldskills{
+  margin:6px 0 0;font-size:12px;line-height:1.4;
+  border-top:1px solid var(--bone-line);padding-top:5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card.folded .foldskills b{color:var(--maroon)}
 .icon-btn:hover{background:rgba(0,0,0,.5)}
 .card-body{padding:9px 12px 12px}
 
@@ -4099,6 +4104,15 @@ function cardStyle(f){
   const c=f.color;
   return ` style="--fcol-bar:linear-gradient(90deg,${c} 0%,${mixWhite(c,.34)} 55%,${mixWhite(c,.72)} 100%);--fcol-edge:${mixWhite(c,.28)}"`;
 }
+/* skill names carried by a fighter: innate, specialisation, then chosen */
+function skillNamesOf(f,t){
+  const out=[];
+  const add=n=>{ if(n&&out.indexOf(n)===-1) out.push(n); };
+  (t.grantedSkills||[]).forEach(add);
+  if(f.specialism) add(SPEC_SKILLS[f.specialism]);
+  if(f.skill&&f.skill.name) add(f.skill.name);
+  return out;
+}
 function gearOf(f,t){
   const removed=n=>(t.options||[]).some(o=>f.options.includes(o.id)&&o.removes===n);
   const fixed=(t.fixedGear||[]).filter(n=>!removed(n));
@@ -4201,8 +4215,10 @@ function card(f){
 
   /* folded: name and weapons only */
   if(f.folded){
+    const fskills=skillNamesOf(f,t);
     return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${bar}
-      <div class="card-body">${wtable||`<p class="foldnote">No weapons carried.</p>`}</div>
+      <div class="card-body">${wtable||`<p class="foldnote">No weapons carried.</p>`}${
+        fskills.length?`<p class="foldskills"><b>Skills:</b> ${fskills.map(escHtml).join(", ")}</p>`:""}</div>
     </article>`;
   }
 
