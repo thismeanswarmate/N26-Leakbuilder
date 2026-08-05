@@ -87,9 +87,20 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .col-recruit{grid-area:recruit;position:sticky;top:100px;max-height:calc(100vh - 124px);overflow:auto}
 .col-ref{grid-area:ref}
 .col-main{grid-area:main}
+/* grid items default to min-width:auto, so a long fighter name or a wide table
+   widens its whole column and pushes the page sideways. Pin them to zero. */
+.col-recruit,.col-ref,.col-main{min-width:0}
+.panel,.card,.card-body,.drawer{min-width:0}
+.wrap>*{max-width:100%}
 
 .panel{background:var(--panel);border:1px solid #9c9384;margin-bottom:16px;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 2px 6px rgba(0,0,0,.10)}
-.panel-head{padding:7px 14px;border-bottom:1px solid #9c9384;display:flex;align-items:baseline;gap:10px;background:var(--band)}
+.panel-head{padding:7px 14px;border-bottom:1px solid #9c9384;display:flex;align-items:center;gap:10px;background:var(--band)}
+.panel-head h2{line-height:1.1}
+.panel-fold{background:rgba(0,0,0,.14);color:var(--maroon);width:20px;height:20px;font-size:9px}
+.panel-fold:hover{background:rgba(0,0,0,.3);color:#fff}
+.panel.folded .panel-body{display:none}
+.panel.folded .panel-head{border-bottom:none}
+.panel.folded .panel-fold span{transform:rotate(-90deg)}
 .panel-head h2{font-size:14px;letter-spacing:.14em;color:#3b352d}
 .panel-head .sub{font-size:10.5px;color:#6d6659;font-family:var(--display);letter-spacing:.14em}
 .panel-body{padding:12px 14px}
@@ -121,10 +132,12 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .recruit .rname{flex:1;font-family:var(--display);font-size:14.5px;letter-spacing:.02em;padding:6px 9px;min-width:0}
 .recruit .rtype{font-size:9.5px;color:var(--bone-dim);letter-spacing:.1em;text-transform:uppercase;font-family:var(--display)}
 .recruit .rcost{
-  font-family:var(--display);font-size:14px;color:#fff;background:var(--maroon);
+  font-family:var(--display);font-size:14px;color:#fff;background:var(--rc,var(--maroon));
   display:flex;align-items:center;padding:0 10px;letter-spacing:.04em;
 }
-.recruit:hover .rcost{background:var(--accent)}
+.recruit{border-left:3px solid var(--rc,var(--maroon))}
+.recruit:hover{background:#fff}
+.recruit:hover .rcost{filter:brightness(1.15)}
 
 /* ---------- roster cards ---------- */
 .roster{display:flex;flex-direction:column;gap:16px}
@@ -143,7 +156,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 #picker[hidden]{display:none}
 #picker h5{font-family:var(--display);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--maroon);margin:0 0 6px;font-weight:700}
-.swgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:9px}
+.swgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:9px}
 .swgrid button{width:100%;aspect-ratio:1;border:1px solid rgba(0,0,0,.28);padding:0;cursor:pointer}
 .swgrid button:hover{outline:2px solid var(--ink);outline-offset:1px}
 .swgrid button.on{outline:2px solid var(--ink);outline-offset:1px}
@@ -446,9 +459,12 @@ details.notes p{margin:8px 0}
 </header>
 
 <main class="wrap">
-  <section class="panel col-recruit">
-    <div class="panel-head"><h2>Recruit</h2><span class="sub" id="recruitSub"></span></div>
-    <div class="panel-body">
+  <section class="panel col-recruit" id="recruitPanel">
+    <div class="panel-head">
+      <button class="fold-btn panel-fold" data-panelfold="recruit" aria-expanded="true"
+        aria-controls="recruitBody" title="Fold the Recruit list"><span>&#9660;</span></button>
+      <h2>Recruit</h2><span class="sub" id="recruitSub"></span></div>
+    <div class="panel-body" id="recruitBody">
       <div id="recruitList"></div>
       <details class="notes" id="rankBox" style="display:none"><summary>Skill sets (ranked)</summary><div id="rankBody"></div></details>
       <details class="notes"><summary>Gang special rules</summary><div id="gangRules"></div></details>
@@ -654,6 +670,10 @@ async function cloudPull(mergeLocal){
       });
     }
     library.gangs=merged;
+    /* everything just pulled is by definition in sync; only the copies we are
+       about to upload count as changed */
+    markAllClean();
+    upload.forEach(id=>{ delete lastSig[id]; });
     const keys=Object.keys(merged);
     if(meta&&meta.current&&merged[meta.current]&&!(state&&merged[state.id])) library.current=meta.current;
     if(state&&merged[state.id]) library.current=state.id;
@@ -3073,15 +3093,21 @@ spyres:{
   noHierarchyLimit:true,
   specialRules:[
     ["Gang Composition","Spyre Hunting Parties do not follow the usual gang composition rules. There must be one Fighter with the Leader Subtype. If the Leader is ever deleted from the Gang Roster, follow the rules for Death of a Leader. A Spyre Hunting Party may not recruit any model not included in this list unless explicitly stated they will join Spyre Hunting Parties."],
-    ["Scions of the Imperial House &mdash; Spyrer","Every fighter here has the Spyrer Subtype: a noble of the Imperial House in the most advanced technology on Necromunda. <b>Kill Count:</b> each hunting rig verifies its wearer's kills and unlocks functions as the tally rises. As well as gaining XP, each time a Spyrer takes an enemy Fighter Out of Action, increase that Spyrer's Kill Count by 1."],
+    ["New Subtype: Spyrer","A Spyrer is a noble of the Imperial House equipped with the most advanced technology on Necromunda, making them capable of taking on the deadliest of opponents and winning."],
+    ["Master of the Hunt","All Spyrers have a suite of special rules granted by their hunting rigs: all Spyrers have the <b>Juggernaut</b> skill; a Spyrer may never be Captured for any reason, and instead counts as having suffered Superficial Damage; Spyrers do not suffer side effects from chems and can never become addicted to them; and a Spyrer never needs to make Nerve checks."],
+    ["Reflex Enhancers","During the Ready Gang step of the Priority Phase, all Spyrers gain one extra Ready marker; if an effect would prevent them gaining a Ready marker, they gain one fewer. Each time a Spyrer activates they only remove one Ready marker &mdash; meaning they can activate twice each round. Any effect that removes Ready markers or prevents them being added only affects one Ready marker."],
+    ["Kill Count","Each hunting rig records all that happens to its Spyrer, verifying their kills and unlocking functions as the tally rises. As well as gaining XP, each time a Spyrer takes an enemy Fighter Out of Action, increase that Spyrer's Kill Count by 1."],
     ["Threat Assessment","When selecting starting Crews or Reinforcements, divide the number of models allowed by two, rounding up, to determine the number of Spyrers that may be selected. For example, if 3 Reinforcements would arrive, only two Spyrers arrive."],
-    ["Income, Equipment &amp; Recruitment","The gang gains control of Territories like a regular gang, but gains no standard Boons from non-Spyrer Base Camp Territories &mdash; each instead grants <b>Income: 15 credits</b>. Spyre Hunter Fighters may freely put any weapons they carry into the gang's Stash and be equipped with new weapons during Redistribute Equipment. Whenever a weapon is placed into the Stash, any Augmentations it has gained are lost."],
-    ["Base of Operation &mdash; Spyrer Base Camp","Instead of starting with a Settlement Territory, a Spyre Hunting Party starts with a Spyrer Base Camp Territory which it can never lose. <b>Income:</b> 15 credits. <b>Special:</b> at the start of each Post-cycle Sequence, one Spyrer may clear their In Recovery box before declaring Post-cycle Actions."],
-    ["Suit Evolution (Post-cycle Action, Spyrer only)","Spyrers do not have access to the standard Post-cycle Actions. If a Spyrer's Kill Count is at least 4, reduce their Kill Count by 4 and either clear all Spyrer Hunting Rig Glitches (resetting the Glitch Count to zero and removing all negative effects), or gain a Hunting Rig Augmentation. If the Spyrer's Kill Count is still at least 4, they may perform this action again for free."],
-    ["Hunting Rig Augmentation","The hunting rig improves the power supply to one of its systems and brings additional functions online. Pick one weapon or piece of wargear carried by the Spyrer and increase its Augmentation tier by 1. If the new Augmentation would increase a characteristic beyond its maximum, increase the Augmentation tier by an additional 1. Use the <b>Augmentations</b> button on each fighter card to set tiers &mdash; profiles and characteristics update automatically."],
-    ["Spyrers &amp; Lasting Injuries","When a Spyrer is taken Out of Action, instead of rolling on the Lasting Injury table, roll on the Spyrer Hunting Rig Glitches table (D66). Results 51&ndash;64 send the Spyrer into Recovery, increase their Glitch Count by 1 and reduce a characteristic by 1; 65 Multiple Glitches rolls D3 more times; 66 Critical Overload kills the Spyrer instantly. If, during the Clean House step, a Spyrer's Glitch Count is higher than their Toughness characteristic, the hunting rig shuts down &mdash; delete the Spyre Hunter and all of their equipment from the Gang Roster."],
+    ["Base of Operation &mdash; Spyrer Base Camp","Instead of starting with a Settlement Territory, a Spyre Hunting Party starts with a Spyrer Base Camp Territory which it can never lose. A stronghold that is heavily fortified and highly mobile, it moves with the party so they always have a safe place to recover. <b>Income:</b> 15 credits. <b>Special:</b> at the start of each Post-cycle Sequence, one Spyrer may clear their In Recovery box before declaring Post-cycle Actions."],
+    ["Post-cycle: Suit Evolution (Spyrer only)","Spyrers do not have access to the standard Post-cycle Actions. If a Spyrer's Kill Count is at least 4, reduce their Kill Count by 4 and either clear all Spyrer Hunting Rig Glitches (resetting the Glitch Count to zero and removing all negative effects), or gain a Hunting Rig Augmentation. If the Kill Count is still at least 4, they may perform this action again for free."],
+    ["Hunting Rig Augmentation","Pick one weapon or piece of wargear carried by the Spyrer and increase its Augmentation tier by 1. If the new Augmentation would increase a characteristic beyond its maximum, increase the Augmentation tier by an additional 1. Use the <b>Augmentations</b> button on each fighter card &mdash; profiles and characteristics update automatically."],
+    ["Post-cycle: Suit Maintenance (Spyrer only)","The Fighter repairs and maintains their hunting rig. The gang removes 100 credits from its Stash to clear all Spyrer Hunting Rig Glitches, resetting the Glitch Count to zero and removing all negative effects caused by the glitches."],
+    ["Post-cycle: Terrorise Territory (Spyrer only, max five Fighters)","The Spyrer goes into a Territory, subduing the local populace and flushing out any Aranthian sympathisers. Add 10 credits to the gang's Stash for each Spyrer that performs this action."],
+    ["Post-cycle: Train (Spyrer only)","The Spyrer practises their skills ready for the upcoming battles. Each Spyrer that performs this action earns 2 XP."],
+    ["Spyrers &amp; Lasting Injuries","When a Spyrer is taken Out of Action, instead of rolling on the Lasting Injury table, roll on the Spyrer Hunting Rig Glitches table (D66) below. If during the Clean House step a Spyrer's Glitch Count is higher than their Toughness characteristic, the hunting rig shuts down &mdash; delete the Spyre Hunter and all of their equipment from the Gang Roster."],
+    ["Spyrer Hunting Rig Glitches (D66)","<b>11</b> Lesson Learnt: the Spyrer earns D3 XP. <b>12</b> Eternal Enmity: gains Hatred (X) where X is the type of gang that took them Out of Action. <b>13</b> Bitter Enmity: gains Hatred (X) where X is the gang that took them Out of Action. <b>14</b> Personal Enmity: gains Hatred (X) where X is the model that took them Out of Action; if not taken Out of Action by a model's action, treat as Bitter Enmity. <b>15</b> Horrid Scars: gains the Fearsome skill. <b>16</b> Impressive Scars: +1 Leadership. <b>21-26</b> Superficial Damage: misses the rest of the battle but suffers no long-term effects. <b>31-46</b> Grievous Wound: goes into Recovery. <b>51</b> Anxiety Suppression Damaged: Recovery, +1 Glitch, -1 Cool. <b>52</b> Neural Feedback: Recovery, +1 Glitch, -1 Intelligence. <b>53</b> Humbled: Recovery, +1 Glitch, -1 Leadership. <b>54</b> Vox Ghosts: Recovery, +1 Glitch, -1 Willpower. <b>55</b> Gyroscopic Destabilisation: Recovery, +1 Glitch, -1 Initiative. <b>56</b> Seized Locomotors: Recovery, +1 Glitch, -1 Movement. <b>61</b> Targeting Uplink Disruption: Recovery, +1 Glitch, -1 Ballistic Skill. <b>62</b> Stuttering Servos: Recovery, +1 Glitch, -1 Weapon Skill. <b>63</b> Damaged Musculature: Recovery, +1 Glitch, -1 Strength. <b>64</b> Reduced Plate Density: Recovery, +1 Glitch, -1 Toughness. <b>65</b> Multiple Glitches: roll D3 times on this table, re-rolling Multiple Glitches or Critical Overload. <b>66</b> Critical Overload: the Spyrer is killed instantly &mdash; if the injury was caused by an enemy model, that model gains 1 extra XP."],
     ["Starting Skills","When added to a Gang Roster, all Spyre Hunting Party Leaders and Champions may select one skill from one of their Primary Skill Sets."],
-    ["&#9888; Source note &mdash; incomplete scans","The supplied pages carry full profiles only for the Spyre Hunt Master and the Jakara Spyre Hunter, so only those two are recruitable here. The Malcadon, Orrus and Yeld Spyre Hunters and the Caryatid Prime appear in the skill-access and equipment tables, but their statlines and recruitment costs were not among the scans &mdash; their weapons, rigs and augmentation tiers are already entered, so sending that statblock page is all that is needed to finish them. Also: the Hunt Master's armour Save was hidden behind the model photo on the scan, so the 4+ shown is a placeholder &mdash; check it against your book."]
+    ["&#9888; Source note","The Spyre Hunt Master's armour Save is hidden behind the model photograph on the supplied scan. It is entered here as 5+, matching the Jakara, Malcadon and Yeld; only the Orrus is 4+. Worth confirming against your book."]
   ],
   composition:{requireLeader:true,maxLeaders:1},
 
@@ -3105,45 +3131,96 @@ spyres:{
     "Paired Yeld laser gauntlets":W("Spyrer",null,null,[P('10"','20"','3','-1','1','Rapid Fire (1)')]),
     "Paired Yeld missile gauntlets":W("Spyrer",null,null,[P('15"','30"','5','-','1','Knockback (5+), Rapid Fire (1)')]),
     "Yeld wings":W("Spyrer",null,null,[P('E','-','S+1','-1','1','Melee')]),
-    "Spyrer bite":W("Natural",null,null,[P('E','-','S','-','1','Melee')])
+    "Bite":W("Natural",null,null,[P('E','-','S','-','1','Melee')])
   },
   wargear:{
-    "Sovereign hunting rig":{c:0,tp:null,t:"Only worn by the most favoured scions of the Helmawr line, the Sovereign hunting rig can mount the armaments of the Jakara, Malcadon and Yeld hunting rigs, allowing loadouts unavailable to other Spyre Hunters. Grants its wearer a 6+ Invulnerable save."},
-    "Orrus hunting rig":{c:0,tp:null,t:"Constructed of many overlapping layers of armoured plating with a built-in force field projector, granting its wearer a 6+ Invulnerable save."},
-    "Jakara hunting rig":{c:0,tp:null,t:"The lightest of the Spyrer hunting rigs, favouring speed and agility over heavy armour, fashioned to minimise any restriction on the wearer's movements."},
-    "Malcadon hunting rig":{c:0,tp:null,t:"With added support around the upper torso, the Malcadon hunting rig absorbs the extra strain of constantly moving using the inbuilt grapnel launcher."},
-    "Yeld hunting rig":{c:0,tp:null,t:"Crafted from amazingly light yet strong metallic compounds, allowing its wearer to glide through the air when combined with the wings built into the rig. If the wearer does not move, the armour takes on chameleonic properties, hiding the Yeld's position."},
-    "Caryatid Prime":{c:70,tp:null,t:"A winged servant-creature that attends the hunting party. (Profile not present in the supplied scans.)"}
+    "Sovereign hunting rig":{c:null,tp:null,t:"Only worn by the most favoured scions of the Helmawr line, the Sovereign hunting rig can mount the armaments of the Jakara, Malcadon and Yeld hunting rigs, allowing loadouts unavailable to other Spyre Hunters. Grants its wearer a 6+ Invulnerable save."},
+    "Orrus hunting rig":{c:null,tp:null,t:"Constructed of many overlapping layers of armoured plating with a built-in force field projector, granting its wearer a large degree of protection and a 6+ Invulnerable save."},
+    "Jakara hunting rig":{c:null,tp:null,t:"The lightest of the Spyrer hunting rigs, favouring speed and agility over heavy armour, fashioned from materials designed to minimise any restrictions upon the wearer's movements."},
+    "Malcadon hunting rig":{c:null,tp:null,t:"With added support around the upper torso, the Malcadon hunting rig is adapted to absorb the extra strain placed upon the wearer by constantly moving themselves using the inbuilt grapnel launcher."},
+    "Yeld hunting rig":{c:null,tp:null,t:"Crafted from amazingly light yet strong metallic compounds, allowing its wearer to glide through the air when combined with the wings built into the rig. If the wearer does not move, the armour takes on chameleonic properties, hiding the Yeld's position."},
+    "Grapnel launcher":{c:null,tp:null,t:"An inbuilt launcher that hurls the Spyrer across the battlefield, letting them reposition constantly from above."},
+    "Photo-lumen":{c:15,tp:0,t:"+9\" Visibility for this fighter, but they can always be targeted regardless of Visibility."}
   },
 
   fighters:[
     {id:"huntmaster",name:"Spyre Hunt Master",cost:190,role:"Leader",type:"Fighter (Leader, Spyrer)",xp:61,
-     stats:{M:'6"',WS:"3+",BS:"3+",S:3,T:3,W:3,I:4,A:3,Sv:"4+",Ld:8,Cl:9,Wil:8,Int:8},
+     stats:{M:'6"',WS:"3+",BS:"3+",S:3,T:3,W:3,I:4,A:3,Sv:"5+",Ld:8,Cl:9,Wil:8,Int:8},
      skills:{Agility:"Secondary",Combat:"Primary",Savant:"Primary",Shooting:"Primary"},
+     grantedSkills:["Juggernaut"],
      rules:[
        ["Experienced Hunter","When added to a Gang Roster, pick one weapon or piece of wargear carried by a Spyre Hunt Master and increase its Augmentation level by 1. (Set it under Augmentations.)"],
        ["Bonded to the Rig","A Spyre Hunt Master may never have their Sovereign hunting rig unequipped from them, and if they are removed from the Gang Roster this item is also removed instead of being placed into the gang's Stash."],
-       ["Fixed Loadouts","A Spyre Hunt Master may be equipped with up to two options from the Hunt Master Weapons section of the Spyre Hunter Equipment List, and may only ever choose weapons from that section."],
-       ["&#9888; Save unverified","The armour Save was obscured by the model photo on the supplied scan; the 4+ shown is a placeholder &mdash; confirm it against your book."]
+       ["Fixed Loadouts","A Spyre Hunt Master may be equipped with up to two options from the Hunt Master Weapons section of the Spyre Hunter Equipment List."]
      ],
-     buys:true,startingSkill:true,weaponGroups:["Hunt Master weapons","Jakara weapons"],maxWeapons:2,
+     buys:true,startingSkill:true,weaponGroups:["Hunt Master weapons"],maxWeapons:2,
      fixedGear:["Sovereign hunting rig"]},
 
     {id:"jakara",name:"Jakara Spyre Hunter",cost:185,role:"Champion",type:"Fighter (Champion, Spyrer)",xp:37,
      stats:{M:'6"',WS:"3+",BS:"4+",S:3,T:3,W:2,I:4,A:3,Sv:"5+",Ld:7,Cl:8,Wil:7,Int:7},
      skills:{Agility:"Primary",Combat:"Primary",Savant:"Secondary"},
+     grantedSkills:["Juggernaut"],
      rules:[
        ["Bonded to the Rig","A Jakara Spyre Hunter may never have their Jakara hunting rig or mirror shield unequipped from them, and if they are removed from the Gang Roster these items are also removed instead of being placed into the gang's Stash."],
        ["Fixed Loadouts","A Jakara Spyre Hunter must always be equipped with exactly one option from the Jakara Weapons section of the Spyre Hunter Equipment List."]
      ],
-     buys:true,startingSkill:true,weaponGroups:["Jakara weapons"],exactWeapons:1,
-     fixedGear:["Jakara hunting rig","Mirror shield"]}
+     buys:true,startingSkill:true,weaponGroups:["Jakara weapons"],groupExact:{"Jakara weapons":1},
+     fixedGear:["Jakara hunting rig","Mirror shield"]},
+
+    {id:"malcadon",name:"Malcadon Spyre Hunter",cost:185,role:"Champion",type:"Fighter (Champion, Spyrer)",xp:37,
+     stats:{M:'7"',WS:"3+",BS:"3+",S:3,T:3,W:2,I:4,A:2,Sv:"5+",Ld:7,Cl:8,Wil:7,Int:7},
+     skills:{Agility:"Primary",Cunning:"Primary",Savant:"Secondary"},
+     grantedSkills:["Juggernaut"],
+     rules:[
+       ["Bonded to the Rig","A Malcadon Spyre Hunter may never have their Malcadon hunting rig, drop rig, grapnel launcher or paired web incisors unequipped from them, and if they are removed from the Gang Roster these items are also removed instead of being placed into the gang's Stash."],
+       ["Fixed Loadouts","A Malcadon Spyre Hunter must always be equipped with exactly one option from the Malcadon Weapons section of the Spyre Hunter Equipment List."]
+     ],
+     buys:true,startingSkill:true,weaponGroups:["Malcadon weapons"],groupExact:{"Malcadon weapons":1},
+     fixedGear:["Malcadon hunting rig","Drop rig","Grapnel launcher","Paired web incisors"]},
+
+    {id:"orrus",name:"Orrus Spyre Hunter",cost:180,role:"Champion",type:"Fighter (Champion, Spyrer)",xp:37,
+     stats:{M:'5"',WS:"3+",BS:"3+",S:3,T:4,W:2,I:4,A:2,Sv:"4+",Ld:7,Cl:8,Wil:7,Int:7},
+     skills:{Brawn:"Primary",Combat:"Primary",Savant:"Secondary"},
+     grantedSkills:["Juggernaut"],
+     rules:[
+       ["Bonded to the Rig","An Orrus Spyre Hunter may never have their Orrus hunting rig unequipped from them, and if they are removed from the Gang Roster this item is also removed instead of being placed into the gang's Stash."],
+       ["Fixed Loadouts","An Orrus Spyre Hunter must always be equipped with exactly one option from the Orrus Ranged Weapons section and exactly one option from the Orrus Close Combat Weapons section of the Spyre Hunter Equipment List."]
+     ],
+     buys:true,startingSkill:true,
+     weaponGroups:["Orrus ranged weapons","Orrus close combat weapons"],
+     groupExact:{"Orrus ranged weapons":1,"Orrus close combat weapons":1},
+     fixedGear:["Orrus hunting rig"]},
+
+    {id:"yeld",name:"Yeld Spyre Hunter",cost:180,role:"Champion",type:"Fighter (Champion, Flying, Spyrer)",xp:37,
+     stats:{M:'7"',WS:"4+",BS:"3+",S:3,T:3,W:2,I:5,A:2,Sv:"5+",Ld:7,Cl:8,Wil:7,Int:7},
+     skills:{Agility:"Primary",Savant:"Secondary",Shooting:"Primary"},
+     grantedSkills:["Juggernaut"],
+     rules:[
+       ["Bonded to the Rig","A Yeld Spyre Hunter may never have their Yeld hunting rig or Yeld wings unequipped from them, and if they are removed from the Gang Roster these items are also removed instead of being placed into the gang's Stash."],
+       ["Fixed Loadouts","A Yeld Spyre Hunter must always be equipped with exactly one option from the Yeld Weapons section of the Spyre Hunter Equipment List."]
+     ],
+     buys:true,startingSkill:true,weaponGroups:["Yeld weapons"],groupExact:{"Yeld weapons":1},
+     fixedGear:["Yeld hunting rig","Yeld wings"]},
+
+    {id:"caryatid",name:"Caryatid Prime",cost:70,role:"Pet",type:"Fighter (Beast, Flying, Pet)",xp:13,
+     stats:{M:'6"',WS:"5+",BS:"6+",S:2,T:2,W:1,I:5,A:1,Sv:"6+",Ld:5,Cl:7,Wil:7,Int:7},
+     skills:{Agility:"Primary",Cunning:"Secondary"},
+     rules:[
+       ["Leash Range","A Caryatid Prime has a 3\" Leash range."],
+       ["Spyrer Companion","A Caryatid Prime is subject to the Reflex Enhancers special rule."],
+       ["Charmed Companion","A Caryatid Prime is able to help their chosen companion avoid damage. While they are within Leash range of their owner, that Fighter may re-roll one failed save each round."],
+       ["Precognition","The gift of foresight enables it to dodge and evade all but the most unexpected of attacks, granting it a 3+ Invulnerable save."],
+       ["Equipment","A Caryatid Prime is armed with a bite. They may not purchase or be equipped with additional weapons or wargear."]
+     ],
+     buys:false,fixedGear:["Bite"]}
   ],
 
   equipment:[
     {g:"Hunt Master weapons",k:"weapon",n:"Malcadon slashing claw with web incisor, grapnel launcher and drop rig",c:45,w:"Malcadon slashing claw",extra:["Web incisor"]},
     {g:"Hunt Master weapons",k:"weapon",n:"Malcadon toxin whip with web incisor, grapnel launcher and drop rig",c:60,w:"Malcadon toxin whip",extra:["Web incisor"]},
     {g:"Hunt Master weapons",k:"weapon",n:"Mirror shield",c:35},
+    {g:"Hunt Master weapons",k:"weapon",n:"Monomolecular sword",c:50},
+    {g:"Hunt Master weapons",k:"weapon",n:"Naga blade",c:65},
     {g:"Hunt Master weapons",k:"weapon",n:"Yeld laser gauntlet",c:25},
     {g:"Hunt Master weapons",k:"weapon",n:"Yeld missile gauntlet",c:60},
 
@@ -3152,7 +3229,6 @@ spyres:{
 
     {g:"Malcadon weapons",k:"weapon",n:"Paired Malcadon slashing claws",c:35},
     {g:"Malcadon weapons",k:"weapon",n:"Paired Malcadon toxin whips",c:50},
-    {g:"Malcadon weapons",k:"weapon",n:"Paired web incisors",c:0,note:"part of the Malcadon rig"},
 
     {g:"Orrus ranged weapons",k:"weapon",n:"Paired bolt launchers",c:40},
     {g:"Orrus ranged weapons",k:"weapon",n:"Paired disintegration matrix",c:75},
@@ -3163,18 +3239,16 @@ spyres:{
 
     {g:"Yeld weapons",k:"weapon",n:"Paired Yeld laser gauntlets",c:35},
     {g:"Yeld weapons",k:"weapon",n:"Paired Yeld missile gauntlets",c:65},
-    {g:"Yeld weapons",k:"weapon",n:"Yeld wings",c:0,note:"part of the Yeld rig"},
 
     {g:"Personal equipment",k:"wargear",n:"Bio-booster",c:25},
     {g:"Personal equipment",k:"wargear",n:"Grav chute",c:30},
     {g:"Personal equipment",k:"wargear",n:"Photo-goggles",c:35},
-    {g:"Personal equipment",k:"wargear",n:"Photo-lumens",c:15},
+    {g:"Personal equipment",k:"wargear",n:"Photo-lumen",c:15},
     {g:"Personal equipment",k:"wargear",n:"Respirator",c:15},
 
-    {g:"Pets",k:"pet",n:"Caryatid Prime",c:70,max:1,roles:["Leader","Champion"],note:"profile pending scan"}
+    {g:"Pets",k:"pet",n:"Caryatid Prime",c:70,note:"also a roster entry"}
   ]
 },
-
 outcasts:{
   id:"outcasts", name:"Outcasts", accent:"#6f6250", accent2:"#6d2318", defaultCredits:1000,
   skillSets:["Agility","Brawn","Combat","Cunning","Savant","Shooting"],
@@ -3464,11 +3538,11 @@ const SPYRE_WEAPON_AUGS = {
 
 const SPYRE_GEAR_AUGS = {
   "Sovereign hunting rig":[
-    {d:"Improve the Invulnerable save to 5+",note:"Sovereign hunting rig: 5+ Invulnerable save"},
+    {d:"Improve the Invulnerable save to 5+",note:"Sovereign hunting rig: 5+ Invulnerable save (6+ before augmentation)"},
     {d:"Improve the wearer's Strength characteristic by 1",stat:{S:1}}
   ],
   "Orrus hunting rig":[
-    {d:"Improve the Invulnerable save to 5+",note:"Orrus hunting rig: 5+ Invulnerable save"},
+    {d:"Improve the Invulnerable save to 5+",note:"Orrus hunting rig: 5+ Invulnerable save (6+ before augmentation)"},
     {d:"Improve the Invulnerable save to 4+",note:"Orrus hunting rig: 4+ Invulnerable save"}
   ],
   "Jakara hunting rig":[
@@ -3563,8 +3637,12 @@ function augNotes(f,t){
   augItems(f,t).forEach(({key})=>{
     const tiers=augTiers(key), lvl=augLevel(f,key);
     if(!tiers||!lvl) return;
-    for(let i=0;i<lvl&&i<tiers.length;i++) if(tiers[i].note) out.push(tiers[i].note);
-    if(lvl) out.push(`${key} — Augmentation Tier ${Math.min(lvl,tiers.length)}`);
+    /* later tiers supersede earlier ones (a 4+ save replaces the 5+), so only
+       the highest unlocked note is worth showing */
+    let last=null;
+    for(let i=0;i<lvl&&i<tiers.length;i++) if(tiers[i].note) last=tiers[i].note;
+    if(last) out.push(last);
+    out.push(`${key} — Augmentation Tier ${Math.min(lvl,tiers.length)}`);
   });
   return out;
 }
@@ -3574,6 +3652,7 @@ function augNotes(f,t){
    ========================================================================= */
 
 const LIB_KEY = "underhive:library:v1";
+const UI_KEY  = "underhive:ui:v1";
 const LEGACY_KEY = "underhive:roster:v2";
 let library = {current:null, gangs:{}};
 let pendingDelete = null, clearArmed = false;
@@ -3902,7 +3981,9 @@ function renderRecruit(){
     const list=pool.filter(f=>f.role===role);
     if(!list.length) return;
     html+=`<div class="recruit-group">${role}</div>`;
-    list.forEach(f=>{ html+=`<button class="recruit" data-add="${f.id}">
+    list.forEach(f=>{
+      const c=typeColour(f);
+      html+=`<button class="recruit" data-add="${f.id}" style="--rc:${c}">
       <span class="rname">${f.name}<br><span class="rtype">${f.type}</span></span>
       <span class="rcost">${f.cost}</span></button>`; });
   });
@@ -4088,9 +4169,40 @@ function tpBudgetLine(f,t){
    One picked colour drives the header bar gradient and the card edge, so a
    fighter can be colour-coded without hand-editing three values. --------- */
 const CARD_COLOURS=[
-  "#6d2318","#8c1d45","#a3231b","#a8551f","#8a5a12","#7a5a2f",
-  "#6b6a2f","#5c7a2f","#2f7d72","#3d566e","#5a3c7a","#6b2f6b"
+  /* reds */
+  "#6d2318","#8e2b22","#a3231b","#b33a1e","#b0472c","#8c1d45",
+  /* wines and violets */
+  "#7d2f4f","#7a3f5a","#6b2f6b","#5a3c7a","#4a3f6b","#1f4e79",
+  /* oranges and ochres */
+  "#a8551f","#9a6b2b","#a07a12","#b08a1e","#8a5a12","#8a6d3b",
+  /* browns and olives */
+  "#7a5a2f","#5c4033","#6f6250","#6b6a2f","#4a6b2f","#5c7a2f",
+  /* greens, blues and neutrals */
+  "#2f6b4a","#2f7d72","#2f6b7d","#3d566e","#2f3b45","#4a4a4a"
 ];
+/* Every fighter type gets its own colour, walked out of the shared palette
+   starting from the gang's own accent. The stride is coprime with the palette
+   length so a gang runs through all 30 before any repeat, and stepping by 7
+   crosses colour families each time so neighbouring entries stay distinct.
+   Index 0 is the gang accent, so the Leader still wears the gang's colour. */
+const COLOUR_STRIDE=7;
+function typeColour(t){
+  const g=gang();
+  const base=(g&&g.accent)||"#6d2318";
+  if(!t||!g||!g.fighters) return base;
+  let i=g.fighters.findIndex(x=>x.id===t.id);
+  if(i<0){                       /* imported cult fighters sit after the gang's own */
+    const pool=fighterPool();
+    i=pool.findIndex(x=>x.id===t.id);
+    if(i<0) return base;
+  }
+  const start=Math.max(0,CARD_COLOURS.indexOf(base));
+  return CARD_COLOURS[(start+i*COLOUR_STRIDE)%CARD_COLOURS.length];
+}
+function defaultCardColour(f){
+  const t=f?ftype(f.typeId):null;
+  return t?typeColour(t):((gang()&&gang().accent)||"#6d2318");
+}
 function mixWhite(hex,amt){
   const h=String(hex||"").replace("#","");
   if(h.length!==6) return hex;
@@ -4100,8 +4212,7 @@ function mixWhite(hex,amt){
   return "#"+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 function cardStyle(f){
-  if(!f.color) return "";
-  const c=f.color;
+  const c=f.color||defaultCardColour(f);
   return ` style="--fcol-bar:linear-gradient(90deg,${c} 0%,${mixWhite(c,.34)} 55%,${mixWhite(c,.72)} 100%);--fcol-edge:${mixWhite(c,.28)}"`;
 }
 /* skill names carried by a fighter: innate, specialisation, then chosen */
@@ -4209,7 +4320,7 @@ function card(f){
       <input value="${escAttr(f.name)}" data-rename="${f.uid}" aria-label="Fighter name">
       <span class="card-cost">${fighterCost(f)}</span>
       <button class="swatch-btn" data-colour="${f.uid}" title="Card colour"
-        aria-label="Card colour for ${escAttr(f.name)}"><span class="swatch-dot" style="background:${f.color||"#6d2318"}"></span></button>
+        aria-label="Card colour for ${escAttr(f.name)}"><span class="swatch-dot" style="background:${f.color||defaultCardColour(f)}"></span></button>
       <button class="icon-btn" data-remove="${f.uid}" aria-label="Remove fighter">&times;</button>
     </div>`;
 
@@ -4690,14 +4801,22 @@ function renderAlerts(){
   state.fighters.forEach(f=>{
     const t=ftype(f.typeId);
     if(t.weaponGroups){
-      const pool=equipmentPool();
-      const n=f.gear.filter(x=>pool.some(e=>e.n===x&&(e.list||null)===(fList(f,t)||null)&&e.k==="weapon"&&t.weaponGroups.indexOf(e.g)>-1)).length;
-      if(t.exactWeapons!=null&&n!==t.exactWeapons)
+      const pool=equipmentPool(), fl=fList(f,t)||null;
+      const inGroup=g=>f.gear.filter(x=>pool.some(e=>e.n===x&&(e.list||null)===fl&&e.k==="weapon"&&e.g===g)).length;
+      const n=t.weaponGroups.reduce((a,g)=>a+inGroup(g),0);
+      /* a fighter may owe a fixed number from each named section, as the Orrus
+         does: one ranged and one close combat */
+      if(t.groupExact) Object.keys(t.groupExact).forEach(g=>{
+        const want=t.groupExact[g], got=inGroup(g);
+        if(got!==want) out.push([got<want?"":"bad","Fixed loadout",
+          `${f.name} must carry exactly ${want} option from the ${g} section, and has ${got}.`]);
+      });
+      else if(t.exactWeapons!=null&&n!==t.exactWeapons)
         out.push([n<t.exactWeapons?"":"bad","Fixed loadout",
           `${f.name} must carry exactly ${t.exactWeapons} option from the ${t.weaponGroups.join(" and ")} section, and has ${n}.`]);
       if(t.maxWeapons!=null&&n>t.maxWeapons)
         out.push(["bad","Fixed loadout",
-          `${f.name} may carry at most ${t.maxWeapons} options from the ${t.weaponGroups.join(" and ")} section, and has ${n}.`]);
+          `${f.name} may carry at most ${t.maxWeapons} options from the ${t.weaponGroups.join(" and ")} sections, and has ${n}.`]);
     }
     const st=augmentStats(statsOf(f,t),f,t);
     if(f.glitchCount&&st.T!=null&&f.glitchCount>parseInt(st.T,10))
@@ -5145,14 +5264,14 @@ function renderPicker(){
   if(!el||!pickerFor) return;
   const f=state&&state.fighters.find(x=>x.uid===pickerFor);
   if(!f){ closePicker(); return; }
-  const cur=(f.color||"").toLowerCase();
+  const cur=(f.color||defaultCardColour(f)).toLowerCase();
   el.innerHTML=`<h5>Card colour</h5>
     <div class="swgrid">${CARD_COLOURS.map(c=>
       `<button data-setcol="${c}" class="${cur===c.toLowerCase()?"on":""}" style="background:${c}"
         title="${c}" aria-label="Use ${c}"></button>`).join("")}</div>
     <div class="pickrow">
-      <input type="color" value="${f.color||"#6d2318"}" data-customcol aria-label="Custom colour">
-      <button class="mini" data-clearcol>Default</button>
+      <input type="color" value="${f.color||defaultCardColour(f)}" data-customcol aria-label="Custom colour">
+      <button class="mini" data-clearcol title="Back to this fighter type's colour">Default</button>
       <button class="mini" data-closecol>Done</button>
     </div>`;
   placePicker();
@@ -5194,11 +5313,11 @@ function setCardColour(v){
      dialog while the user is still dragging in it */
   const el=pickerEl();
   if(!el) return;
-  const cur=(f.color||"").toLowerCase();
+  const cur=(f.color||defaultCardColour(f)).toLowerCase();
   el.querySelectorAll("[data-setcol]").forEach(b=>
     b.classList.toggle("on",cur===b.dataset.setcol.toLowerCase()));
   const ci=el.querySelector("[data-customcol]");
-  if(ci&&document.activeElement!==ci) ci.value=f.color||"#6d2318";
+  if(ci&&document.activeElement!==ci) ci.value=f.color||defaultCardColour(f);
 }
 document.addEventListener("click",e=>{
   const open=e.target.closest?e.target.closest("[data-colour]"):null;
@@ -5217,6 +5336,33 @@ document.addEventListener("input",e=>{
 window.addEventListener("scroll",placePicker,true);
 window.addEventListener("resize",placePicker);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&pickerFor) closePicker(); });
+
+/* Panel fold state is a view preference, not roster data, so it lives under its
+   own key and never counts as an edit or reaches the account. */
+let ui={recruitFolded:false};
+async function loadUI(){
+  try{
+    const r=await STORE.get(UI_KEY);
+    if(r&&r.value) ui=Object.assign(ui,JSON.parse(r.value)||{});
+  }catch(err){}
+}
+async function saveUI(){ try{ await STORE.set(UI_KEY,JSON.stringify(ui)); }catch(err){} }
+function applyUI(){
+  const p=document.getElementById("recruitPanel");
+  if(!p) return;
+  p.classList.toggle("folded",!!ui.recruitFolded);
+  const b=p.querySelector("[data-panelfold]");
+  if(b){
+    b.setAttribute("aria-expanded",ui.recruitFolded?"false":"true");
+    b.title=ui.recruitFolded?"Show the Recruit list":"Fold the Recruit list";
+  }
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest?e.target.closest("[data-panelfold]"):null;
+  if(!b) return;
+  ui.recruitFolded=!ui.recruitFolded;
+  applyUI(); saveUI();
+});
 
 let toastTimer;
 function toast(msg){
@@ -5254,13 +5400,30 @@ const STORE=(function(){
     set:async (k,v)=>{ mem[k]=v; }};
 })();
 let saveError=null;
+/* A roster's "updated" stamp decides which copy wins when two devices hold the
+   same gang, so it must only move when the roster actually changes. Bumping it
+   on every render made merely opening the app look like an edit, which let a
+   stale device overwrite newer work in the account. */
+const lastSig={};
+function gangSig(g){
+  const u=g.updated; g.updated=0;
+  const sig=JSON.stringify(g);
+  g.updated=u;
+  return sig;
+}
+function markClean(g){ if(g&&g.id) lastSig[g.id]=gangSig(g); }
+function markAllClean(){ Object.keys(library.gangs||{}).forEach(id=>markClean(library.gangs[id])); }
 async function save(){
   if(state){
-    state.updated=Date.now();
+    const sig=gangSig(state);
+    if(lastSig[state.id]!==sig){
+      lastSig[state.id]=sig;
+      state.updated=Date.now();
+      cloudTouch(state.id);
+    }
     library.gangs[state.id]=state;
     library.current=state.id;
   }
-  if(state) cloudTouch(state.id);
   try{
     await STORE.set(LIB_KEY,JSON.stringify(library));
     saveError=null;
@@ -5522,6 +5685,9 @@ document.getElementById("setup").addEventListener("keydown",e=>{
 
 (async function init(){
   library=await loadLibrary();
+  await loadUI();
+  applyUI();
+  markAllClean();
   renderStorageNote();
   renderAccount();
   cloudStart();      /* signs in silently if this browser already has a session */
