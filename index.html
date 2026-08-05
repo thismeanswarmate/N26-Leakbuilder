@@ -131,8 +131,25 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .empty{border:1px dashed #9c9384;padding:34px 20px;text-align:center;color:var(--text-dim);background:rgba(255,255,255,.35)}
 .empty strong{display:block;font-family:var(--display);letter-spacing:.12em;color:var(--maroon);margin-bottom:6px;font-size:17px}
 
-.card{background:var(--bone);color:#1c1713;border:1px solid #9c9384;box-shadow:0 2px 7px rgba(0,0,0,.16)}
-.card-bar{background:var(--card-bar);display:flex;align-items:center;gap:8px;padding:5px 10px}
+.card{background:var(--bone);color:#1c1713;border:1px solid var(--fcol-edge,#9c9384);box-shadow:0 2px 7px rgba(0,0,0,.16)}
+.card-bar{background:var(--fcol-bar,var(--card-bar));display:flex;align-items:center;gap:8px;padding:5px 10px}
+.swatch-btn{background:rgba(0,0,0,.25);border:none;width:24px;height:24px;padding:0;flex:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.swatch-btn:hover{background:rgba(0,0,0,.5)}
+.swatch-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.75);display:block}
+#picker{
+  position:fixed;z-index:70;width:206px;padding:9px;
+  background:var(--sheet);border:1px solid #8f8577;box-shadow:0 8px 26px rgba(0,0,0,.34)}
+#picker[hidden]{display:none}
+#picker h5{font-family:var(--display);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--maroon);margin:0 0 6px;font-weight:700}
+.swgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:9px}
+.swgrid button{width:100%;aspect-ratio:1;border:1px solid rgba(0,0,0,.28);padding:0;cursor:pointer}
+.swgrid button:hover{outline:2px solid var(--ink);outline-offset:1px}
+.swgrid button.on{outline:2px solid var(--ink);outline-offset:1px}
+.pickrow{display:flex;align-items:center;gap:7px;font-size:11.5px}
+.pickrow input[type=color]{width:34px;height:26px;padding:0;border:1px solid #9c9384;background:none;cursor:pointer}
+.pickrow .mini{flex:none}
 .card-bar input{flex:1;background:transparent;border:none;color:#fff;font-family:var(--display);font-size:20px;letter-spacing:.03em;text-transform:uppercase;padding:2px 4px;min-width:0}
 .card-bar input:hover{background:rgba(255,255,255,.14)}
 .card-bar input:focus{background:rgba(0,0,0,.25);outline:none}
@@ -227,10 +244,21 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .ftrait{display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer}
 .ftrait input{margin:0;flex:none}
 .fbtns{display:flex;gap:8px;margin-top:10px}
+.acct{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.acct-note{font-size:11.5px;color:#5d564b}
+.acct-who{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.4);
+  border:1px solid #a49a89;padding:3px 8px;max-width:190px}
+.acct-who img{width:20px;height:20px;border-radius:50%;flex:none}
+.acct-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-dot{width:8px;height:8px;border-radius:50%;flex:none;background:#4a7d3f}
+.acct-dot.syncing{background:var(--warn);animation:pulse 1s ease-in-out infinite}
+.acct-dot.error{background:var(--bad)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .storenote{
   font-size:12px;padding:6px 9px;margin-bottom:8px;
   border-left:3px solid var(--warn);background:rgba(138,90,18,.10);color:#6b4a10}
 .storenote.bad{border-left-color:var(--bad);background:rgba(163,35,27,.10);color:var(--bad)}
+.storenote.good{border-left-color:#4a7d3f;background:rgba(74,125,63,.10);color:#33562c}
 .tpline{
   margin:0 0 8px;padding:5px 9px;font-size:12px;
   background:rgba(255,255,255,.4);border-left:3px solid var(--maroon)}
@@ -402,6 +430,7 @@ details.notes p{margin:8px 0}
     <div class="field" id="chaosField" style="display:none"><label for="chaosSelect">Corruption</label><select id="chaosSelect"></select></div>
     <div class="field"><label for="gangName">Gang name</label><input id="gangName" placeholder="Name your gang"></div>
     <div class="field"><label for="budget">Credits</label><input id="budget" type="number" min="0" step="50" value="1000"></div>
+    <div class="acct" id="acct" style="display:none"></div>
     <div class="readout">
       <div><span class="k">Rating</span><span class="v" id="roSpent">0</span></div>
       <div><span class="k">Left</span><span class="v" id="roLeft">1000</span></div>
@@ -496,6 +525,7 @@ details.notes p{margin:8px 0}
     </div>
   </div>
 </div>
+<div id="picker" hidden></div>
 <div id="tip" role="tooltip" aria-hidden="true"></div>
 <div class="toast" id="toast"></div>
 
@@ -504,6 +534,238 @@ details.notes p{margin:8px 0}
    1. CORE CATALOGUE  (shared by every gang)
    Trait and wargear texts are condensed summaries, not book wording.
    ========================================================================= */
+
+/* =========================================================================
+   1b. GOOGLE SIGN-IN & CLOUD SYNC  (optional)
+
+   Paste the config from your own Firebase project below to switch this on.
+   Leave the values empty and the tool behaves exactly as before: everything
+   stays in this browser and no network calls are made.
+
+   These values are NOT secrets. Firebase web config is a public identifier;
+   your data is protected by the Firestore security rules in SETUP.md.
+   ========================================================================= */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAasVmLvZqYAtmhRds8EMzW0Ybm41ohc-o",
+  authDomain:        "necromunda-gang-builder.firebaseapp.com",
+  projectId:         "necromunda-gang-builder",
+  storageBucket:     "necromunda-gang-builder.firebasestorage.app",
+  messagingSenderId: "250873697333",
+  appId:             "1:250873697333:web:79cc3d7fbb2b81db884d7c"
+};
+
+const FIREBASE_SDK = "12.17.0";
+function cloudConfigured(){ return !!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId&&FIREBASE_CONFIG.authDomain); }
+
+let FB=null, authUser=null, cloudState="off", cloudMsg="", lastSync=null;
+/* cloudState: off | loading | signedout | syncing | ok | error */
+
+async function fbInit(){
+  if(FB) return FB;
+  if(!cloudConfigured()) return null;
+  const base=`https://www.gstatic.com/firebasejs/${FIREBASE_SDK}`;
+  const [app,auth,fs]=await Promise.all([
+    import(`${base}/firebase-app.js`),
+    import(`${base}/firebase-auth.js`),
+    import(`${base}/firebase-firestore.js`)
+  ]);
+  const a=app.initializeApp(FIREBASE_CONFIG);
+  FB={A:auth,F:fs,app:a,auth:auth.getAuth(a),db:fs.getFirestore(a)};
+  return FB;
+}
+
+async function cloudStart(){
+  if(!cloudConfigured()){ cloudState="off"; return; }
+  cloudState="loading"; renderAccount();
+  try{
+    const fb=await fbInit();
+    fb.A.onAuthStateChanged(fb.auth,async u=>{
+      authUser=u?{uid:u.uid,name:u.displayName||u.email||"Signed in",photo:u.photoURL||""}:null;
+      if(u){ await cloudPull(true); }
+      else { cloudState="signedout"; cloudMsg=""; renderAccount(); renderStorageNote(); }
+    });
+  }catch(err){
+    cloudState="error";
+    cloudMsg="Could not reach Google sign-in \u2014 you may be offline. Rosters are still saved in this browser.";
+    renderAccount(); renderStorageNote();
+  }
+}
+
+async function signInGoogle(){
+  if(!cloudConfigured()) return toast("Google sign-in is not configured yet");
+  try{
+    const fb=await fbInit();
+    const provider=new fb.A.GoogleAuthProvider();
+    await fb.A.signInWithPopup(fb.auth,provider);
+  }catch(err){
+    const code=(err&&err.code)||"";
+    if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request") return;
+    cloudState="error";
+    cloudMsg = code==="auth/unauthorized-domain"
+      ? "This web address is not on the Firebase authorised domains list. Add it under Authentication → Settings."
+      : "Sign-in failed: "+(err&&err.message?err.message:code);
+    renderAccount(); renderStorageNote();
+  }
+}
+async function signOutGoogle(){
+  try{
+    await cloudFlush();
+    const fb=await fbInit();
+    await fb.A.signOut(fb.auth);
+    toast("Signed out. Rosters stay saved in this browser.");
+  }catch(err){ toast("Could not sign out"); }
+}
+
+/* ---- reading and writing the account's rosters -------------------------- */
+function gangDoc(fb,id){ return fb.F.doc(fb.db,"users",authUser.uid,"gangs",id); }
+
+async function cloudPull(mergeLocal){
+  const fb=await fbInit();
+  if(!fb||!authUser) return;
+  cloudState="syncing"; renderAccount();
+  try{
+    const snap=await fb.F.getDocs(fb.F.collection(fb.db,"users",authUser.uid,"gangs"));
+    const remote={};
+    snap.forEach(d=>{
+      const row=d.data();
+      if(!row||!row.json) return;
+      try{ const g=JSON.parse(row.json); if(g&&g.id) remote[g.id]=g; }catch(err){}
+    });
+    let meta=null;
+    try{
+      const m=await fb.F.getDoc(fb.F.doc(fb.db,"users",authUser.uid));
+      meta=m.exists()?m.data():null;
+    }catch(err){}
+
+    (library.removed||[]).forEach(id=>{ delete remote[id]; removedGangs.add(id); });
+    const merged=Object.assign({},remote);
+    const upload=[];
+    if(mergeLocal){
+      /* rosters made before signing in are adopted into the account; where
+         both sides know a roster, the more recently edited one wins */
+      Object.keys(library.gangs).forEach(id=>{
+        const local=library.gangs[id], far=remote[id];
+        if(!far||((local.updated||0)>(far.updated||0))){ merged[id]=local; upload.push(id); }
+      });
+    }
+    library.gangs=merged;
+    const keys=Object.keys(merged);
+    if(meta&&meta.current&&merged[meta.current]&&!(state&&merged[state.id])) library.current=meta.current;
+    if(state&&merged[state.id]) library.current=state.id;
+    else if(!merged[library.current]) library.current=keys[0]||null;
+
+    if(library.current&&merged[library.current]){
+      state=merged[library.current];
+      closeSetup(); syncInputs(); render();
+    } else {
+      state=null; renderGangs(); openSetup();
+    }
+    upload.forEach(id=>dirtyGangs.add(id));
+    if(upload.length) await cloudPush();
+    lastSync=Date.now(); cloudState="ok"; cloudMsg="";
+  }catch(err){
+    cloudState="error";
+    cloudMsg=cloudErrText(err,"load");
+  }
+  renderAccount(); renderStorageNote(); renderSetupLoad();
+}
+
+const dirtyGangs=new Set(), removedGangs=new Set();
+let pushTimer=null;
+function cloudTouch(id){
+  if(!authUser||!id) return;
+  dirtyGangs.add(id);
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>{ cloudPush(); },1200);   /* debounced: editing is chatty */
+}
+function cloudDrop(id){
+  if(!id) return;
+  library.removed=library.removed||[];
+  if(library.removed.indexOf(id)===-1) library.removed.push(id);
+  dirtyGangs.delete(id); removedGangs.add(id);
+  if(!authUser) return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>{ cloudPush(); },400);
+}
+/* send anything still queued right now, rather than on the timer */
+async function cloudFlush(){
+  clearTimeout(pushTimer); pushTimer=null;
+  if(authUser) await cloudPush();
+}
+async function cloudPush(){
+  const fb=await fbInit();
+  if(!fb||!authUser) return;
+  if(!dirtyGangs.size&&!removedGangs.size) return;
+  (library.removed||[]).forEach(id=>removedGangs.add(id));
+  const ids=[...dirtyGangs], gone=[...removedGangs];
+  dirtyGangs.clear(); removedGangs.clear();
+  cloudState="syncing"; renderAccount();
+  try{
+    const jobs=[];
+    ids.forEach(id=>{
+      const g=library.gangs[id];
+      if(!g) return;
+      jobs.push(fb.F.setDoc(gangDoc(fb,id),{
+        gangId:g.gangId||"", name:g.gangName||"", updated:g.updated||Date.now(),
+        json:JSON.stringify(g)
+      }));
+    });
+    gone.forEach(id=>jobs.push(fb.F.deleteDoc(gangDoc(fb,id))));
+    jobs.push(fb.F.setDoc(fb.F.doc(fb.db,"users",authUser.uid),
+      {current:library.current||null,updated:Date.now()},{merge:true}));
+    await Promise.all(jobs);
+    if(gone.length&&library.removed)
+      library.removed=library.removed.filter(id=>gone.indexOf(id)===-1);
+    lastSync=Date.now(); cloudState="ok"; cloudMsg="";
+  }catch(err){
+    ids.forEach(i=>dirtyGangs.add(i));
+    gone.forEach(i=>removedGangs.add(i));
+    cloudState="error";
+    cloudMsg=cloudErrText(err,"save");
+  }
+  renderAccount(); renderStorageNote();
+}
+function cloudErrText(err,what){
+  const code=(err&&err.code)||"";
+  if(code==="permission-denied")
+    return "Firestore refused the request. Check the security rules from SETUP.md are published.";
+  if(code==="unavailable")
+    return `Could not reach the server to ${what} your rosters. They are still saved in this browser.`;
+  return `Could not ${what} rosters from your account`+(err&&err.message?": "+err.message:".");
+}
+
+/* ---- account button in the running head --------------------------------- */
+function renderAccount(){
+  const el=document.getElementById("acct");
+  if(!el) return;
+  if(!cloudConfigured()){ el.style.display="none"; return; }
+  el.style.display="";
+  if(cloudState==="loading"){ el.innerHTML=`<span class="acct-note">Connecting…</span>`; return; }
+  if(!authUser){
+    el.innerHTML=`<button class="tool" id="btnSignIn">Sign in with Google</button>`;
+    return;
+  }
+  const dot = cloudState==="syncing"?"syncing":cloudState==="error"?"error":"ok";
+  const when = lastSync?new Date(lastSync).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"";
+  el.innerHTML=`
+    <span class="acct-who" title="${escAttr(authUser.name)}">
+      ${authUser.photo?`<img src="${escAttr(authUser.photo)}" alt="">`:""}
+      <span class="acct-name">${escHtml(authUser.name)}</span>
+      <span class="acct-dot ${dot}" title="${dot==="ok"?("Synced "+when):dot==="syncing"?"Syncing…":"Sync problem"}"></span>
+    </span>
+    <button class="tool" id="btnSync">Sync</button>
+    <button class="tool" id="btnSignOut">Sign out</button>`;
+}
+window.addEventListener("pagehide",()=>{ if(authUser&&(dirtyGangs.size||removedGangs.size)) cloudPush(); });
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"&&authUser&&(dirtyGangs.size||removedGangs.size)) cloudFlush();
+});
+document.addEventListener("click",e=>{
+  if(e.target.closest("#btnSignIn")) return signInGoogle();
+  if(e.target.closest("#btnSignOut")) return signOutGoogle();
+  if(e.target.closest("#btnSync")) return cloudPull(true);
+});
+
 
 const TRAITS = {
 "Additional Attacks":"X extra close combat attacks during the bearer's activation, only while the weapon is neither the Primary nor the Secondary weapon.",
@@ -3612,6 +3874,7 @@ function render(){
   renderRecruit(); sortRoster(); renderRoster(); renderReadout(); renderAlerts(); renderStatic(); renderRef(); renderGangs();
   save();
   applyFilters();
+  if(pickerFor) placePicker();
 }
 
 function renderReadout(){
@@ -3816,6 +4079,26 @@ function tpBudgetLine(f,t){
     <b>Trading Post allowance:</b> <span class="tpnum">${spent} of ${t.tpBudget} TP</span> spent at recruitment
     ${over?`&mdash; <b>${spent-t.tpBudget} over the limit</b>`:`&middot; ${left} TP still available`}</p>`;
 }
+/* --- per-fighter card colour --------------------------------------------
+   One picked colour drives the header bar gradient and the card edge, so a
+   fighter can be colour-coded without hand-editing three values. --------- */
+const CARD_COLOURS=[
+  "#6d2318","#8c1d45","#a3231b","#a8551f","#8a5a12","#7a5a2f",
+  "#6b6a2f","#5c7a2f","#2f7d72","#3d566e","#5a3c7a","#6b2f6b"
+];
+function mixWhite(hex,amt){
+  const h=String(hex||"").replace("#","");
+  if(h.length!==6) return hex;
+  const n=parseInt(h,16);
+  const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  const m=v=>Math.round(v+(255-v)*amt);
+  return "#"+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+function cardStyle(f){
+  if(!f.color) return "";
+  const c=f.color;
+  return ` style="--fcol-bar:linear-gradient(90deg,${c} 0%,${mixWhite(c,.34)} 55%,${mixWhite(c,.72)} 100%);--fcol-edge:${mixWhite(c,.28)}"`;
+}
 function gearOf(f,t){
   const removed=n=>(t.options||[]).some(o=>f.options.includes(o.id)&&o.removes===n);
   const fixed=(t.fixedGear||[]).filter(n=>!removed(n));
@@ -3911,17 +4194,19 @@ function card(f){
         aria-label="${f.folded?"Expand":"Fold"} ${escAttr(f.name)}"><span>&#9660;</span></button>
       <input value="${escAttr(f.name)}" data-rename="${f.uid}" aria-label="Fighter name">
       <span class="card-cost">${fighterCost(f)}</span>
+      <button class="swatch-btn" data-colour="${f.uid}" title="Card colour"
+        aria-label="Card colour for ${escAttr(f.name)}"><span class="swatch-dot" style="background:${f.color||"#6d2318"}"></span></button>
       <button class="icon-btn" data-remove="${f.uid}" aria-label="Remove fighter">&times;</button>
     </div>`;
 
   /* folded: name and weapons only */
   if(f.folded){
-    return `<article class="card folded" data-uid="${f.uid}">${bar}
+    return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${bar}
       <div class="card-body">${wtable||`<p class="foldnote">No weapons carried.</p>`}</div>
     </article>`;
   }
 
-  return `<article class="card" data-uid="${f.uid}">
+  return `<article class="card" data-uid="${f.uid}"${cardStyle(f)}>
     ${bar}
     <div class="card-body">
       ${statTable(f,t)}
@@ -4520,6 +4805,7 @@ document.addEventListener("click",e=>{
       const gone=library.gangs[id];
       const label=(gone&&gone.gangName)||"Unnamed gang";
       delete library.gangs[id];
+      cloudDrop(id);
       pendingDelete=null;
       const rest=Object.keys(library.gangs);
       if(state.id===id){
@@ -4831,6 +5117,91 @@ window.addEventListener("scroll",placeTip,true);
 window.addEventListener("resize",placeTip);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") hideTip(); });
 
+/* =========================================================================
+   CARD COLOUR PICKER
+   Lives outside the roster so a re-render cannot destroy it mid-use; it
+   re-anchors itself to the same fighter's button after every render.
+   ========================================================================= */
+let pickerFor=null;
+function pickerEl(){ return document.getElementById("picker"); }
+function renderPicker(){
+  const el=pickerEl();
+  if(!el||!pickerFor) return;
+  const f=state&&state.fighters.find(x=>x.uid===pickerFor);
+  if(!f){ closePicker(); return; }
+  const cur=(f.color||"").toLowerCase();
+  el.innerHTML=`<h5>Card colour</h5>
+    <div class="swgrid">${CARD_COLOURS.map(c=>
+      `<button data-setcol="${c}" class="${cur===c.toLowerCase()?"on":""}" style="background:${c}"
+        title="${c}" aria-label="Use ${c}"></button>`).join("")}</div>
+    <div class="pickrow">
+      <input type="color" value="${f.color||"#6d2318"}" data-customcol aria-label="Custom colour">
+      <button class="mini" data-clearcol>Default</button>
+      <button class="mini" data-closecol>Done</button>
+    </div>`;
+  placePicker();
+}
+function placePicker(){
+  const el=pickerEl();
+  if(!el||!pickerFor) return;
+  const anchor=document.querySelector(`[data-colour="${pickerFor}"]`);
+  if(!anchor){ closePicker(); return; }
+  const r=anchor.getBoundingClientRect(), pad=8;
+  el.hidden=false;
+  const t=el.getBoundingClientRect();
+  let left=r.right-t.width, top=r.bottom+6;
+  if(left<pad) left=pad;
+  if(left+t.width>window.innerWidth-pad) left=window.innerWidth-pad-t.width;
+  if(top+t.height>window.innerHeight-pad){
+    const above=r.top-6-t.height;
+    top=above>pad?above:Math.max(pad,window.innerHeight-pad-t.height);
+  }
+  el.style.left=Math.round(left)+"px";
+  el.style.top=Math.round(top)+"px";
+}
+function openPicker(uid){
+  pickerFor=(pickerFor===uid)?null:uid;
+  if(!pickerFor) return closePicker();
+  renderPicker();
+}
+function closePicker(){
+  pickerFor=null;
+  const el=pickerEl();
+  if(el){ el.hidden=true; el.innerHTML=""; }
+}
+function setCardColour(v){
+  const f=state&&state.fighters.find(x=>x.uid===pickerFor);
+  if(!f) return;
+  f.color=v||null;
+  render();
+  /* refresh the picker in place: rebuilding it would close the OS colour
+     dialog while the user is still dragging in it */
+  const el=pickerEl();
+  if(!el) return;
+  const cur=(f.color||"").toLowerCase();
+  el.querySelectorAll("[data-setcol]").forEach(b=>
+    b.classList.toggle("on",cur===b.dataset.setcol.toLowerCase()));
+  const ci=el.querySelector("[data-customcol]");
+  if(ci&&document.activeElement!==ci) ci.value=f.color||"#6d2318";
+}
+document.addEventListener("click",e=>{
+  const open=e.target.closest?e.target.closest("[data-colour]"):null;
+  if(open){ e.preventDefault(); return openPicker(open.dataset.colour); }
+  const inside=e.target.closest?e.target.closest("#picker"):null;
+  if(!inside){ if(pickerFor) closePicker(); return; }
+  const sw=e.target.closest("[data-setcol]");
+  if(sw) return setCardColour(sw.dataset.setcol);
+  if(e.target.closest("[data-clearcol]")) return setCardColour(null);
+  if(e.target.closest("[data-closecol]")) return closePicker();
+});
+document.addEventListener("input",e=>{
+  const c=e.target.closest?e.target.closest("[data-customcol]"):null;
+  if(c) setCardColour(c.value);
+});
+window.addEventListener("scroll",placePicker,true);
+window.addEventListener("resize",placePicker);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&pickerFor) closePicker(); });
+
 let toastTimer;
 function toast(msg){
   const t=document.getElementById("toast");
@@ -4873,6 +5244,7 @@ async function save(){
     library.gangs[state.id]=state;
     library.current=state.id;
   }
+  if(state) cloudTouch(state.id);
   try{
     await STORE.set(LIB_KEY,JSON.stringify(library));
     saveError=null;
@@ -4886,6 +5258,21 @@ async function save(){
 function renderStorageNote(){
   const el=document.getElementById("storeNote");
   if(!el) return;
+  if(cloudConfigured()&&cloudState==="error"&&cloudMsg){
+    el.className="storenote bad"; el.textContent=cloudMsg; el.style.display=""; return;
+  }
+  if(authUser){
+    el.className="storenote good";
+    el.textContent=`Synced to ${authUser.name}'s Google account`
+      +(lastSync?` · last synced ${new Date(lastSync).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"")
+      +". These rosters follow you to any device you sign in on.";
+    el.style.display=""; return;
+  }
+  if(cloudConfigured()&&cloudState==="signedout"){
+    el.className="storenote";
+    el.textContent="Saved in this browser only. Sign in with Google to keep these rosters in your account and reach them from other devices.";
+    el.style.display=""; return;
+  }
   if(saveError){
     el.className="storenote bad";
     el.textContent=saveError;
@@ -5120,6 +5507,8 @@ document.getElementById("setup").addEventListener("keydown",e=>{
 (async function init(){
   library=await loadLibrary();
   renderStorageNote();
+  renderAccount();
+  cloudStart();      /* signs in silently if this browser already has a session */
   if(library.current&&library.gangs[library.current]){
     state=library.gangs[library.current];
     syncInputs(); render();
