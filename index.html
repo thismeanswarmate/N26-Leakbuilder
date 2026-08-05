@@ -113,6 +113,10 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
   .brand h1{font-size:25px}
   #gangName{width:100%}
   .field{flex:1 1 130px}
+  .card{--pw:62px;--ph:83px}
+}
+@media (max-width:400px){
+  .card{--pw:54px;--ph:72px}
   .readout{width:100%}
   .readout div{flex:1;min-width:0;padding:5px 4px}
 }
@@ -144,7 +148,34 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .empty{border:1px dashed #9c9384;padding:34px 20px;text-align:center;color:var(--text-dim);background:rgba(255,255,255,.35)}
 .empty strong{display:block;font-family:var(--display);letter-spacing:.12em;color:var(--maroon);margin-bottom:6px;font-size:17px}
 
-.card{background:var(--bone);color:#1c1713;border:1px solid var(--fcol-edge,#9c9384);box-shadow:0 2px 7px rgba(0,0,0,.16)}
+.card{background:var(--bone);color:#1c1713;border:1px solid var(--fcol-edge,#9c9384);box-shadow:0 2px 7px rgba(0,0,0,.16);
+  position:relative;padding-left:var(--pw,84px)}
+/* The portrait is taken out of flow and pinned to the full height of the card,
+   so it is always as large as the card allows and can never make a folded card
+   taller than it already was. The cap stops it stretching down an open card. */
+.portrait{
+  position:absolute;left:0;top:0;width:var(--pw,84px);
+  height:100%;max-height:var(--ph,112px);
+  padding:0;border:none;border-right:1px solid var(--fcol-edge,#9c9384);
+  background:#241d18;overflow:hidden;cursor:pointer;display:block}
+/* short folded cards crop hard, so bias the crop upward and keep the head */
+.portrait img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block}
+.portrait .ph{width:100%;height:100%;display:block;background:
+  linear-gradient(160deg,color-mix(in srgb,var(--pc,#6d2318) 55%,#14100d),#14100d)}
+.portrait .ph svg{width:100%;height:100%;opacity:.5}
+.portrait:hover .cam,.portrait:focus-visible .cam{opacity:1}
+.portrait .cam{
+  position:absolute;left:0;right:0;bottom:0;padding:2px 0;
+  font-family:var(--display);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:#fff;background:rgba(0,0,0,.62);opacity:0;transition:opacity .12s}
+.portrait-clear{
+  position:absolute;top:2px;right:2px;width:15px;height:15px;line-height:1;font-size:11px;
+  background:rgba(0,0,0,.55);color:#fff;border:none;padding:0;cursor:pointer;opacity:0;transition:opacity .12s}
+.portrait:hover .portrait-clear,.portrait-clear:focus-visible{opacity:1}
+.portrait-clear:hover{background:var(--bad)}
+/* a portrait path that 404s falls back to the frame rather than a broken icon */
+.portrait.failed img{display:none}
+.portrait.failed .ph[hidden]{display:block}
 .card-bar{background:var(--fcol-bar,var(--card-bar));display:flex;align-items:center;gap:8px;padding:5px 10px}
 .swatch-btn{background:rgba(0,0,0,.25);border:none;width:24px;height:24px;padding:0;flex:none;
   display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -258,7 +289,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 }
 .rng input[type=range]::-webkit-slider-runnable-track{height:26px;background:none}
 .rng input[type=range]::-moz-range-track{height:26px;background:none}
-.ftraits{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:1px 10px;margin-top:3px}
+.ftraits{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(132px,100%),1fr));gap:1px 10px;margin-top:3px}
 .ftrait{display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer}
 .ftrait input{margin:0;flex:none}
 .fbtns{display:flex;gap:8px;margin-top:10px}
@@ -358,7 +389,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .drawer{margin-top:10px;border-top:2px solid var(--maroon);padding-top:10px}
 .drawer h4{font-size:11.5px;color:var(--maroon);letter-spacing:.16em;margin:14px 0 5px;border-bottom:1px solid var(--bone-line);padding-bottom:2px}
 .drawer h4:first-child{margin-top:0}
-.gear-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:0 18px}
+.gear-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:0 18px}
 /* equipment list rows with dot leaders, as printed */
 .gear{display:flex;align-items:center;gap:5px;font-size:12.5px;padding:2px 0}
 .gear > span:not(.g-cost):not(.qnum):not(.tpr){
@@ -414,7 +445,7 @@ details.notes summary{padding:8px 12px;cursor:pointer;font-family:var(--display)
 details.notes div{padding:0 14px 12px;font-size:13px;color:#3a352c}
 details.notes li{margin-bottom:5px}
 details.notes p{margin:8px 0}
-.xptable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.xptable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;table-layout:fixed}
 .xptable th{font-family:var(--display);font-size:10px;letter-spacing:.13em;color:var(--maroon);text-align:left;border-bottom:1px solid var(--maroon);padding:3px 6px 3px 0;text-transform:uppercase}
 .xptable td{padding:4px 6px 4px 0;border-bottom:1px solid var(--bone-line);vertical-align:top;color:#3a352c}
 .xptable tr:nth-child(even) td{background:rgba(0,0,0,.035)}
@@ -431,6 +462,7 @@ details.notes p{margin:8px 0}
 @media print{
   body{background:#fff}
   .topbar,.col-recruit,.col-ref,.card-actions,.drawer,.tools,.alerts,.icon-btn,.panel-head{display:none !important}
+  .portrait .cam,.portrait-clear{display:none !important}
   .wrap{display:block;padding:0}
   .card{box-shadow:none;border:1px solid #999;margin-bottom:10px;break-inside:avoid}
 }
@@ -4186,6 +4218,224 @@ const CARD_COLOURS=[
    crosses colour families each time so neighbouring entries stay distinct.
    Index 0 is the gang accent, so the Leader still wears the gang's colour. */
 const COLOUR_STRIDE=7;
+
+/* ---- Fighter portraits -------------------------------------------------
+   Art is looked up by fighter type id. Drop images beside this file and list
+   them here, e.g.  queen:"portraits/escher-queen.png"  — a relative path keeps
+   them out of the saved roster, so they cost nothing in storage and are shared
+   by every fighter of that type. A data: URI works too.
+   Anything a user sets on an individual fighter (f.portrait) wins over this,
+   and a path that fails to load falls back to the placeholder frame. */
+const PORTRAITS={
+  /* Ash Waste Nomads */
+  nomads:{
+    "chieftain":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-chieftain.png",
+    "watcher":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-watcher.png",
+    "stormcaller":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-stormcaller.png",
+    "warrior":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-warrior.png",
+    "hunter":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-hunter.png",
+    "dustrunner":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-dust-runner.png",
+    "duneskuttler":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-duneskuttler.png",
+    "spinewyrm":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-arthromite-spinewyrm.png",
+    "unbound":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-unbound-helamite.png",
+    "ashwing":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-ashwing-helamite.png"
+  },
+  /* Chaos Helot Cult */
+  helots:{
+    "demagogue":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-demagogue.png",
+    "disciple":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-disciple.png",
+    "witch":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-witch.png",
+    "cultist":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-cultist.png",
+    "initiate":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-initiate.png",
+    "spawn":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-spawn.png",
+    "familiar":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-familiar.png"
+  },
+  /* Corpse Grinder Cult */
+  grinders:{
+    "butcher":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-butcher.png",
+    "cutter":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-cutter.png",
+    "skinner":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-skinner.png",
+    "initiate":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-initiate.png",
+    "spawn":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-chaos-spawn.png"
+  },
+  /* Free Ogryns */
+  ogryns:{
+    "overboss":"images/portraits/free-ogryns/portrait-free-ogryns-ogryn-overboss.png",
+    "underboss":"images/portraits/free-ogryns/portrait-free-ogryns-ogryn-underboss.png",
+    "stevedore":"images/portraits/free-ogryns/portrait-free-ogryns-stevedore-ogryn.png",
+    "lobo":"images/portraits/free-ogryns/portrait-free-ogryns-lobo-ogryn.png"
+  },
+  /* Genestealer Cults */
+  gsc:{
+    "adept":"images/portraits/genestealer-cults/portrait-genestealer-cults-adept.png",
+    "alpha":"images/portraits/genestealer-cults/portrait-genestealer-cults-alpha.png",
+    "acolyte":"images/portraits/genestealer-cults/portrait-genestealer-cults-hybrid-acolyte.png",
+    "neophyte":"images/portraits/genestealer-cults/portrait-genestealer-cults-neophyte-hybrid.png",
+    "aberrant":"images/portraits/genestealer-cults/portrait-genestealer-cults-aberrant.png",
+    "initiate":"images/portraits/genestealer-cults/portrait-genestealer-cults-hybrid-initiate.png",
+    "abominant":"images/portraits/genestealer-cults/portrait-genestealer-cults-abominant.png",
+    "familiar":"images/portraits/genestealer-cults/portrait-genestealer-cults-psychic-familiar.png"
+  },
+  /* House Cawdor */
+  cawdor:{
+    "wordkeeper":"images/portraits/cawdor/portrait-cawdor-word-keeper.png",
+    "firebrand":"images/portraits/cawdor/portrait-cawdor-firebrand.png",
+    "brethren":"images/portraits/cawdor/portrait-cawdor-brethren.png",
+    "waybrethren":"images/portraits/cawdor/portrait-cawdor-way-brethren.png",
+    "bonepicker":"images/portraits/cawdor/portrait-cawdor-bonepicker.png",
+    "stigshambler":"images/portraits/cawdor/portrait-cawdor-stig-shambler.png",
+    "priest":"images/portraits/cawdor/portrait-cawdor-redemptionist-priest.png",
+    "deacon":"images/portraits/cawdor/portrait-cawdor-redemptionist-deacon.png",
+    "redbrethren":"images/portraits/cawdor/portrait-cawdor-redemptionist-brethren.png",
+    "zealot":"images/portraits/cawdor/portrait-cawdor-redemptionist-zealot.png",
+    "sheenbird":"images/portraits/cawdor/portrait-cawdor-sheen-bird.png"
+  },
+  /* House Delaque */
+  delaque:{
+    "master":"images/portraits/delaque/portrait-delaque-master-of-shadow.png",
+    "phantom":"images/portraits/delaque/portrait-delaque-phantom.png",
+    "nachtghul":"images/portraits/delaque/portrait-delaque-nacht-ghul.png",
+    "ghost":"images/portraits/delaque/portrait-delaque-ghost.png",
+    "psygheist":"images/portraits/delaque/portrait-delaque-psy-gheist.png",
+    "shadow":"images/portraits/delaque/portrait-delaque-shadow.png",
+    "piscean":"images/portraits/delaque/portrait-delaque-piscean-spektor.png",
+    "cephalopod":"images/portraits/delaque/portrait-delaque-cephalopod-spektor.png",
+    "wyrm":"images/portraits/delaque/portrait-delaque-psychoteric-wyrm.png"
+  },
+  /* House Escher */
+  escher:{
+    "queen":"images/portraits/escher/portrait-escher-gang-queen.png",
+    "matriarch":"images/portraits/escher/portrait-escher-matriarch.png",
+    "deathmaiden":"images/portraits/escher/portrait-escher-death-maiden.png",
+    "sister":"images/portraits/escher/portrait-escher-ganger.png",
+    "wyld":"images/portraits/escher/portrait-escher-wyld-runner.png",
+    "little":"images/portraits/escher/portrait-escher-little-sister.png",
+    "khimerix":"images/portraits/escher/portrait-escher-khimerix.png",
+    "phyrr":"images/portraits/escher/portrait-escher-phyrr-cat.png",
+    "phelynx":"images/portraits/escher/portrait-escher-phelynx.png"
+  },
+  /* House Goliath */
+  goliath:{
+    "forgetyrant":"images/portraits/goliath/portrait-goliath-forge-tyrant.png",
+    "forgeboss":"images/portraits/goliath/portrait-goliath-forge-boss.png",
+    "stimmer":"images/portraits/goliath/portrait-goliath-stimmer.png",
+    "bruiser":"images/portraits/goliath/portrait-goliath-bruiser.png",
+    "forgeborn":"images/portraits/goliath/portrait-goliath-forge-born.png",
+    "bully":"images/portraits/goliath/portrait-goliath-bully.png",
+    "zerker":"images/portraits/goliath/portrait-goliath-zerker.png",
+    "sumpkroc":"images/portraits/goliath/portrait-goliath-sumpkroc.png"
+  },
+  /* House Orlock */
+  orlock:{
+    "roadcaptain":"images/portraits/orlock/portrait-orlock-road-captain.png",
+    "roadsergeant":"images/portraits/orlock/portrait-orlock-road-sergeant.png",
+    "armsmaster":"images/portraits/orlock/portrait-orlock-arms-master.png",
+    "gunner":"images/portraits/orlock/portrait-orlock-gunner.png",
+    "wrecker":"images/portraits/orlock/portrait-orlock-wrecker.png",
+    "greenhorn":"images/portraits/orlock/portrait-orlock-greenhorn.png",
+    "mastiff":"images/portraits/orlock/portrait-orlock-cyber-mastiff.png"
+  },
+  /* House Van Saar */
+  vansaar:{
+    "prime":"images/portraits/van-saar/portrait-van-saar-prime.png",
+    "augmek":"images/portraits/van-saar/portrait-van-saar-augmek.png",
+    "archeotek":"images/portraits/van-saar/portrait-van-saar-archeotek.png",
+    "tek":"images/portraits/van-saar/portrait-van-saar-tek.png",
+    "neotek":"images/portraits/van-saar/portrait-van-saar-neotek.png",
+    "subtek":"images/portraits/van-saar/portrait-van-saar-subtek.png",
+    "arachnirig":"images/portraits/van-saar/portrait-van-saar-ash-wastes-arachni-rig.png",
+    "cyberachnid":"images/portraits/van-saar/portrait-van-saar-cyberachnid.png"
+  },
+  /* Outcasts */
+  outcasts:{
+    "leader":"images/portraits/outcasts/portrait-outcasts-leader.png",
+    "champion":"images/portraits/outcasts/portrait-outcasts-champion.png",
+    "scum":"images/portraits/outcasts/portrait-outcasts-hive-scum.png"
+  },
+  /* Palanite Enforcers */
+  enforcers:{
+    "captain":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-captain.png",
+    "sergeant":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-sergeant.png",
+    "subsergeant":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-subjugator-sergeant.png",
+    "patrol":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-patrol-officer.png",
+    "subpatrol":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-subjugator-patrol-officer.png",
+    "rookie":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-rookie.png",
+    "haunt":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-haunt.png",
+    "automata":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-sanctioner-pattern-automata.png",
+    "tauros":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-tauros-venator.png",
+    "mastiff":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-hardcase-cyber-mastiff.png"
+  },
+  /* Spyre Hunting Party */
+  spyres:{
+    "huntmaster":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-hunt-master.png",
+    "jakara":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-jakara-spyre-hunter.png",
+    "malcadon":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-malcadon-spyre-hunter.png",
+    "orrus":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-orrus-spyre-hunter.png",
+    "yeld":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-yeld-spyre-hunter.png",
+    "caryatid":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-caryatid-prime.png"
+  },
+  /* The Malstrain */
+  malstrain:{
+    "alpha":"images/portraits/malstrain/portrait-malstrain-alpha.png",
+    "genestealer":"images/portraits/malstrain/portrait-malstrain-genestealer.png",
+    "coalescence":"images/portraits/malstrain/portrait-malstrain-coalescence.png",
+    "broodscum":"images/portraits/malstrain/portrait-malstrain-brood-scum.png",
+    "tyramite":"images/portraits/malstrain/portrait-malstrain-tyramite.png"
+  },
+  /* Venators */
+  venators:{
+    "house-leader":"images/portraits/venators/portrait-venators-house-hunt-leader.png",
+    "ogryn-leader":"images/portraits/venators/portrait-venators-ogryn-hunt-leader.png",
+    "squat-leader":"images/portraits/venators/portrait-venators-squat-hunt-leader.png",
+    "ratling-leader":"images/portraits/venators/portrait-venators-ratling-hunt-leader.png",
+    "beastman-leader":"images/portraits/venators/portrait-venators-beastman-hunt-leader.png",
+    "house-champion":"images/portraits/venators/portrait-venators-house-hunt-champion.png",
+    "ogryn-champion":"images/portraits/venators/portrait-venators-ogryn-hunt-champion.png",
+    "squat-champion":"images/portraits/venators/portrait-venators-squat-hunt-champion.png",
+    "ratling-champion":"images/portraits/venators/portrait-venators-ratling-hunt-champion.png",
+    "beastman-champion":"images/portraits/venators/portrait-venators-beastman-hunt-champion.png",
+    "house-hunter":"images/portraits/venators/portrait-venators-house-hunter.png",
+    "ogryn-hunter":"images/portraits/venators/portrait-venators-ogryn-hunter.png",
+    "squat-hunter":"images/portraits/venators/portrait-venators-squat-hunter.png",
+    "ratling-hunter":"images/portraits/venators/portrait-venators-ratling-hunter.png",
+    "beastman-hunter":"images/portraits/venators/portrait-venators-beastman-hunter.png"
+  }
+};
+
+/* Five type ids (initiate, spawn, familiar, mastiff, alpha) are used by more
+   than one gang, so art is keyed by gang first. A corrupted, infested or
+   Malstrain roster fields fighters defined by another gang, so that gang is
+   checked next; the final sweep is a safety net for anything imported. */
+function portraitSrc(f){
+  if(!f) return "";
+  if(f.portrait) return f.portrait;
+  const id=f.typeId;
+  if(!id) return "";
+  const own=state&&state.gangId;
+  if(own&&PORTRAITS[own]&&PORTRAITS[own][id]) return PORTRAITS[own][id];
+  const alt=!state?null:isCorrupt(state)?"helots":isGSC(state)?"gsc":isMal(state)?"malstrain":null;
+  if(alt&&PORTRAITS[alt]&&PORTRAITS[alt][id]) return PORTRAITS[alt][id];
+  for(const k in PORTRAITS) if(PORTRAITS[k][id]) return PORTRAITS[k][id];
+  return "";
+}
+const PH_SVG='<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+  '<path fill="currentColor" d="M24 25c5.2 0 9.4-4.4 9.4-9.9S29.2 5.2 24 5.2s-9.4 4.4-9.4 9.9S18.8 25 24 25zm0 3.6'+
+  'c-7.4 0-16.6 3.9-16.6 9.6V44h33.2v-5.8c0-5.7-9.2-9.6-16.6-9.6z"/></svg>';
+
+function portraitCell(f){
+  const src=portraitSrc(f), col=f.color||defaultCardColour(f);
+  const inner=src
+    ? `<img src="${escAttr(src)}" alt="" data-phimg onerror="this.closest('.portrait').classList.add('failed')">`
+    : "";
+  return `<button class="portrait${src?"":" empty"}" data-portrait="${f.uid}" style="--pc:${col}"
+      title="${src?"Change":"Add"} portrait for ${escAttr(f.name)}"
+      aria-label="${src?"Change":"Add"} portrait for ${escAttr(f.name)}">
+      ${inner}<span class="ph" style="color:#fff"${src?' hidden':''}>${PH_SVG}</span>
+      <span class="cam">${src?"Change":"Add"}</span>
+      ${f.portrait?`<span class="portrait-clear" role="button" tabindex="0" data-portraitclear="${f.uid}"
+         title="Remove this portrait" aria-label="Remove portrait">&times;</span>`:""}
+    </button>`;
+}
 function typeColour(t){
   const g=gang();
   const base=(g&&g.accent)||"#6d2318";
@@ -4327,13 +4577,14 @@ function card(f){
   /* folded: name and weapons only */
   if(f.folded){
     const fskills=skillNamesOf(f,t);
-    return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${bar}
+    return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${portraitCell(f)}${bar}
       <div class="card-body">${wtable||`<p class="foldnote">No weapons carried.</p>`}${
         fskills.length?`<p class="foldskills"><b>Skills:</b> ${fskills.map(escHtml).join(", ")}</p>`:""}</div>
     </article>`;
   }
 
   return `<article class="card" data-uid="${f.uid}"${cardStyle(f)}>
+    ${portraitCell(f)}
     ${bar}
     <div class="card-body">
       ${statTable(f,t)}
@@ -5336,6 +5587,83 @@ document.addEventListener("input",e=>{
 window.addEventListener("scroll",placePicker,true);
 window.addEventListener("resize",placePicker);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&pickerFor) closePicker(); });
+
+/* ---- Portrait picking -------------------------------------------------
+   Images are cropped square and re-encoded small before they are stored: a
+   roster is saved as one JSON blob per gang and Firestore caps a document at
+   1 MB, so a handful of untouched phone photos would silently break syncing.
+   256px JPEG lands around 10-20 KB, which leaves room for a full gang. */
+const PORTRAIT_PX=256, PORTRAIT_MAX=90000, ROSTER_MAX=850000;
+let pendingPortrait=null, portraitInput=null;
+
+function fitPortrait(file){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const side=Math.min(img.naturalWidth,img.naturalHeight);
+      if(!side) return rej(new Error("no size"));
+      const c=document.createElement("canvas"); c.width=c.height=PORTRAIT_PX;
+      const ctx=c.getContext("2d");
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+      ctx.drawImage(img,(img.naturalWidth-side)/2,(img.naturalHeight-side)/2,side,side,0,0,PORTRAIT_PX,PORTRAIT_PX);
+      let q=.82, out=c.toDataURL("image/jpeg",q);
+      while(out.length>PORTRAIT_MAX&&q>.35){ q-=.12; out=c.toDataURL("image/jpeg",q); }
+      res(out);
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("unreadable")); };
+    img.src=url;
+  });
+}
+
+async function setPortrait(uid,file){
+  const f=state&&state.fighters.find(x=>x.uid===uid);
+  if(!f||!file) return;
+  if(!/^image\//.test(file.type)) return toast("That file is not an image");
+  let data;
+  try{ data=await fitPortrait(file); }
+  catch(err){ return toast("Could not read that image"); }
+  const before=f.portrait||null;
+  f.portrait=data;
+  if(JSON.stringify(state).length>ROSTER_MAX){
+    f.portrait=before;
+    return toast("No room left for another portrait");
+  }
+  render(); toast("Portrait set");
+}
+
+function clearPortrait(uid){
+  const f=state&&state.fighters.find(x=>x.uid===uid);
+  if(!f||!f.portrait) return;
+  f.portrait=null; render(); toast("Portrait removed");
+}
+
+document.addEventListener("click",e=>{
+  if(!e.target.closest) return;
+  const clr=e.target.closest("[data-portraitclear]");
+  if(clr){ e.preventDefault(); e.stopPropagation(); return clearPortrait(clr.dataset.portraitclear); }
+  const btn=e.target.closest("[data-portrait]");
+  if(!btn) return;
+  pendingPortrait=btn.dataset.portrait;
+  if(!portraitInput){
+    portraitInput=document.createElement("input");
+    portraitInput.type="file"; portraitInput.accept="image/*";
+    portraitInput.style.display="none";
+    portraitInput.addEventListener("change",()=>{
+      const file=portraitInput.files&&portraitInput.files[0];
+      const uid=pendingPortrait;
+      portraitInput.value=""; pendingPortrait=null;
+      if(file&&uid) setPortrait(uid,file);
+    });
+    document.body.appendChild(portraitInput);
+  }
+  portraitInput.click();
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"&&e.key!==" ") return;
+  const clr=e.target.closest&&e.target.closest("[data-portraitclear]");
+  if(clr){ e.preventDefault(); clearPortrait(clr.dataset.portraitclear); }
+});
 
 /* Panel fold state is a view preference, not roster data, so it lives under its
    own key and never counts as an edit or reaches the account. */
