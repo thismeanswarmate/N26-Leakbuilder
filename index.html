@@ -55,7 +55,6 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 
 /* ---------- running head ---------- */
 .topbar{
-  position:sticky;top:0;z-index:20;
   background:var(--band);
   border-bottom:1px solid #8f8577;
   box-shadow:0 4px 14px rgba(0,0,0,.18);
@@ -83,8 +82,12 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .readout .v.ok{color:var(--ink)}
 
 /* ---------- page grid ---------- */
-.wrap{max-width:1260px;margin:0 auto;padding:22px 18px 90px;display:grid;grid-template-columns:330px 1fr;grid-template-areas:"recruit main" "ref main";gap:22px;align-items:start}
-.col-recruit{grid-area:recruit;position:sticky;top:100px;max-height:calc(100vh - 124px);overflow:auto}
+.wrap{max-width:1260px;margin:0 auto;padding:22px 18px 90px;display:grid;grid-template-columns:330px 1fr;
+  /* row 1 hugs the Recruit panel and row 2 soaks up the tall main column, so the
+     Reference panel always starts right under Recruit — even with both folded */
+  grid-template-rows:auto 1fr;
+  grid-template-areas:"recruit main" "ref main";gap:22px;align-items:start}
+.col-recruit{grid-area:recruit}
 .col-ref{grid-area:ref}
 .col-main{grid-area:main}
 /* grid items default to min-width:auto, so a long fighter name or a wide table
@@ -105,9 +108,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .panel-head .sub{font-size:10.5px;color:#6d6659;font-family:var(--display);letter-spacing:.14em}
 .panel-body{padding:12px 14px}
 @media (max-width:960px){
-  .wrap{grid-template-columns:1fr;grid-template-areas:"recruit" "main" "ref";padding:14px 12px 60px;gap:16px}
-  .col-recruit{position:static;max-height:none;overflow:visible}
-  .topbar{position:static}
+  .wrap{grid-template-columns:1fr;grid-template-rows:none;grid-template-areas:"recruit" "main" "ref";padding:14px 12px 60px;gap:16px}
   .topbar-inner{padding:9px 12px 11px;gap:10px}
   .brand{width:100%;margin-right:0}
   .brand h1{font-size:25px}
@@ -155,20 +156,21 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
    taller than it already was. The cap stops it stretching down an open card. */
 .portrait{
   position:absolute;left:0;top:0;width:var(--pw,84px);
-  height:100%;max-height:var(--ph,112px);
+  height:100%;
+  /* cap the centring region near the column width so the (larger) medallion is
+     anchored around the card bar; on a short folded card the region is just the
+     card height, so the medallion stays vertically centred there too */
+  max-height:var(--pw,84px);
   padding:0;border:none;
-  background:transparent;overflow:hidden;cursor:pointer;
-  /* size containment lets the frame use cqmin = min(column width, column height),
-     so the framed circle always fits the column without being clipped — this holds
-     on tall open cards AND on short folded cards whose height is content-driven */
-  container-type:size}
-/* the frame is a CSS medallion centred in the column, sized to the smaller of the
-   column's two dimensions so it fits tall open cards and short folded ones alike.
-   Its metal is drawn from the card's own accent colour (--pc) so each portrait ties
-   to its card bar — no bitmap. */
+  background:transparent;cursor:pointer;
+  /* let the medallion break out past the card's top, bottom and left edges */
+  overflow:visible;z-index:4}
+/* the frame is a CSS medallion drawn from the card's own accent colour (--pc) so
+   each portrait ties to its card bar — no bitmap. It is deliberately larger than
+   the column so it overshoots the card boundary, and is not clipped. */
 .portrait .pframe{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:100cqmin;height:100cqmin;border-radius:50%;
+  position:absolute;top:50%;left:50%;transform:translate(calc(-50% - 5px),-50%);
+  width:calc(var(--pw,84px) * 1.28);height:calc(var(--pw,84px) * 1.28);border-radius:50%;
   display:grid;place-items:center;
   /* accent-derived metal tones */
   --f-dark:color-mix(in srgb,var(--pc,#6d2318) 60%,#100b08);
@@ -238,6 +240,15 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .card-bar input:hover{background:rgba(255,255,255,.14)}
 .card-bar input:focus{background:rgba(0,0,0,.25);outline:none}
 .card-cost{font-family:var(--display);font-weight:700;color:#fff;font-size:15px;white-space:nowrap;letter-spacing:.06em}
+/* folded card: the name doubles as the (only) control — click it to expand */
+.foldname{flex:1;text-align:left;background:transparent;border:none;color:#fff;
+  font-family:var(--display);font-size:20px;letter-spacing:.03em;text-transform:uppercase;
+  padding:2px 4px;min-width:0;cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foldname:hover{background:rgba(255,255,255,.14)}
+.foldname:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* folded portrait is display-only, never a click target */
+.portrait-static{pointer-events:none;cursor:default}
 .icon-btn{background:rgba(0,0,0,.25);border:none;color:#fff;width:24px;height:24px;line-height:1;font-size:15px}
 .fold-btn{
   background:rgba(0,0,0,.25);border:none;color:#fff;width:22px;height:22px;
@@ -246,13 +257,25 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .fold-btn span{display:block;transition:transform .12s ease}
 .card.folded .fold-btn span{transform:rotate(-90deg)}
 .card.folded .card-body{padding:7px 12px 8px}
-.card.folded .wtable{margin-top:0}
 .card.folded .foldnote{margin:0;font-size:12px;color:var(--text-dim);font-style:italic}
-.card.folded .foldskills{
-  margin:6px 0 0;font-size:12px;line-height:1.4;
+/* full-width stat block (header line + value band), shared by open and folded
+   cards. Stats spread across the width, gently grouped at the Sv boundaries,
+   with a thin divider line between Sv and Ld. */
+.statfold{margin:0}
+.sf-row{display:flex;justify-content:space-between;align-items:stretch;padding:2px 4px}
+.sf-head{border-bottom:1px solid var(--bone-line)}
+.sf-val{background:#e2ded5;border-bottom:1px solid var(--bone-line)}
+.sf{width:22px;text-align:center;flex:none;align-self:center}
+.sf-head .sf{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.08em;color:var(--maroon)}
+.sf-val .sf{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.sf-b{margin-left:14px}                /* subtle extra room before Sv */
+.sf-line{width:1px;flex:none;align-self:stretch;background:var(--hairline)}
+.card.folded .wtable{margin:7px 0 0}
+.card.folded .foldlist{
+  margin:7px 0 0;font-size:12px;line-height:1.4;
   border-top:1px solid var(--bone-line);padding-top:5px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card.folded .foldskills b{color:var(--maroon)}
+.card.folded .foldlist b{color:var(--maroon)}
 .icon-btn:hover{background:rgba(0,0,0,.5)}
 .card-body{padding:9px 12px 12px}
 
@@ -263,6 +286,12 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .statgrid td.wide{font-family:var(--body);font-size:12px}
 .rule{font-size:12.5px;margin:8px 0 0;color:#2a231c}
 .rule b{color:var(--maroon)}
+/* fighter spec line — label/value pairs laid out as a tidy wrapping row */
+.speclist{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 18px;
+  margin:9px 0 0;font-size:12.5px;color:#2a231c}
+.speclist .spec b{font-family:var(--display);font-weight:700;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--maroon);margin-right:3px}
+.speclist .dim{color:var(--text-dim)}
 
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
 .chip{font-size:11.5px;background:#e2ded5;border:1px solid var(--bone-line);padding:2px 7px;color:#3a2f24;display:inline-flex;align-items:center;gap:6px}
@@ -565,9 +594,12 @@ details.notes p{margin:8px 0}
     </div>
   </section>
 
-  <section class="panel col-ref">
-    <div class="panel-head"><h2>Reference</h2></div>
-    <div class="panel-body">
+  <section class="panel col-ref" id="refPanel">
+    <div class="panel-head">
+      <button class="fold-btn panel-fold" data-panelfold="ref" aria-expanded="true"
+        aria-controls="refBody" title="Fold the Reference panel"><span>&#9660;</span></button>
+      <h2>Reference</h2></div>
+    <div class="panel-body" id="refBody">
       <input id="refSearch" placeholder="Search rules, traits and wargear">
       <div class="ref-tabs">
         <button data-ref="creation" aria-pressed="false">Creation</button>
@@ -4172,15 +4204,20 @@ function skillsOf(f,t){
   if(gang().rankedSkills&&t.skillRank) return rankedSkillsFor(t.skillRank);
   return t.skills||{};
 }
+/* full-width one-line stat block, shared by open and folded cards — a header row
+   and a value band spread across the whole width. Stats sit in three gentle
+   groups (the eight combat stats, Sv, the four mental stats), with a thin
+   divider line between Sv and Ld. Type and XP live in the Fighter rule line. */
 function statTable(f,t){
-  const s=augmentStats(statsOf(f,t),f,t), top=["M","WS","BS","S","T","W","I","A","Sv"];
-  return `<table class="statgrid">
-    <tr>${top.map(k=>`<th>${k}</th>`).join("")}</tr>
-    <tr>${top.map(k=>`<td>${s[k]}</td>`).join("")}</tr>
-    <tr><th>Ld</th><th>Cl</th><th>Wil</th><th>Int</th><th colspan="4">Type</th><th>XP</th></tr>
-    <tr><td>${s.Ld}</td><td>${s.Cl}</td><td>${s.Wil}</td><td>${s.Int}</td>
-        <td colspan="4" class="wide">${t.type}</td><td>${t.xp}</td></tr></table>`;
+  const s=augmentStats(statsOf(f,t),f,t);
+  const keys=["M","WS","BS","S","T","W","I","A","Sv","Ld","Cl","Wil","Int"];
+  const cls=k=>"sf"+(k==="Sv"?" sf-b":"");
+  /* a free-standing divider after Sv sits dead-centre in the flex gap */
+  const row=(rc,get)=>`<div class="sf-row ${rc}">${keys.map(k=>
+    `<span class="${cls(k)}">${get(k)}</span>${k==="Sv"?'<span class="sf-line"></span>':""}`).join("")}</div>`;
+  return `<div class="statfold">${row("sf-head",k=>k)}${row("sf-val",k=>s[k])}</div>`;
 }
+const foldStatBox=statTable;
 
 function traitCells(tr){
   if(!tr||tr==="-") return "-";
@@ -4462,17 +4499,22 @@ const PH_SVG='<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-h
   '<path fill="currentColor" d="M24 25c5.2 0 9.4-4.4 9.4-9.9S29.2 5.2 24 5.2s-9.4 4.4-9.4 9.9S18.8 25 24 25zm0 3.6'+
   'c-7.4 0-16.6 3.9-16.6 9.6V44h33.2v-5.8c0-5.7-9.2-9.6-16.6-9.6z"/></svg>';
 
-function portraitCell(f){
+function portraitCell(f,opts){
   const src=portraitSrc(f), col=f.color||defaultCardColour(f);
   const inner=src
     ? `<img src="${escAttr(src)}" alt="" data-phimg onerror="this.closest('.portrait').classList.add('failed')">`
     : "";
+  const disc=`<span class="pframe" aria-hidden="true">
+        <span class="pdisc">${inner}<span class="ph" style="color:#fff"${src?' hidden':''}>${PH_SVG}</span></span>
+      </span>`;
+  /* folded cards show the portrait but it is not interactive (no change/remove) */
+  if(opts&&opts.static){
+    return `<span class="portrait portrait-static${src?"":" empty"}" style="--pc:${col}" aria-hidden="true">${disc}</span>`;
+  }
   return `<button class="portrait${src?"":" empty"}" data-portrait="${f.uid}" style="--pc:${col}"
       title="${src?"Change":"Add"} portrait for ${escAttr(f.name)}"
       aria-label="${src?"Change":"Add"} portrait for ${escAttr(f.name)}">
-      <span class="pframe" aria-hidden="true">
-        <span class="pdisc">${inner}<span class="ph" style="color:#fff"${src?' hidden':''}>${PH_SVG}</span></span>
-      </span>
+      ${disc}
       <span class="cam">${src?"Change":"Add"}</span>
       ${f.portrait?`<span class="portrait-clear" role="button" tabindex="0" data-portraitclear="${f.uid}"
          title="Remove this portrait" aria-label="Remove portrait">&times;</span>`:""}
@@ -4550,31 +4592,20 @@ function card(f){
   const skills=Object.entries(skillsOf(f,t)).map(([k,v])=>`${k} (${v})`).join(", ");
 
   const FL=fList(f,t);
-  const tipAttr=n=>`data-tip="${escAttr(n)}" data-tip-list="${escAttr(FL||"")}"`;
-  const fixedChips=fixed.concat(added).map(n=>`<span class="chip fixed" ${tipAttr(n)}>${n}</span>`).join("");
-  const gearChips=groupGear(bought).map(g=>{
-    const it=item(g.n,FL);
-    return `<span class="chip" ${tipAttr(g.n)}>${g.n}${g.q>1?` &times;${g.q}`:""} <b>${it?it.c*g.q:0}</b><button data-drop="${f.uid}|${escAttr(g.n)}" aria-label="Remove one ${escAttr(g.n)}">&times;</button></span>`;
-  }).join("");
+  /* weapons, equipment and skills are shown in the tables/notes further down the
+     card, so they carry no chips; only status tags (rule/legacy/etc.) remain */
   const skillNotes=[];
   const addSkill=(label,name)=>{
     const s=skillLookup(name);
     if(s) skillNotes.push([label,`${s.t} <i>(${s.who} only)</i>`]);
   };
   const tags=[];
-  (t.grantedSkills||[]).forEach(n=>{
-    tags.push(`<span class="chip fixed" data-tip="${escAttr(n)}" data-tip-kind="skill"><b>Skill</b> ${n}</span>`);
-    addSkill(n,n);
-  });
+  (t.grantedSkills||[]).forEach(n=>addSkill(n,n));
   if(f.specialism){
     const sn=SPEC_SKILLS[f.specialism];
-    tags.push(`<span class="chip"${sn?` data-tip="${escAttr(sn)}" data-tip-kind="skill"`:""}><b>${f.specialism}</b> ${sn||""}</span>`);
     if(sn) addSkill(`${f.specialism}: ${sn}`,sn);
   }
-  if(f.skill&&f.skill.name){
-    tags.push(`<span class="chip" data-tip="${escAttr(f.skill.name)}" data-tip-kind="skill"><b>${f.skill.set}</b> ${f.skill.name}</span>`);
-    addSkill(f.skill.name,f.skill.name);
-  }
+  if(f.skill&&f.skill.name) addSkill(f.skill.name,f.skill.name);
   if(hasExtraArm(f,t)) tags.push(`<span class="chip fixed"><b>Rule</b> Extra Arm</span>`);
   const legs=legaciesFor(t);
   if(legs.length){
@@ -4616,12 +4647,25 @@ function card(f){
       <button class="icon-btn" data-remove="${f.uid}" aria-label="Remove fighter">&times;</button>
     </div>`;
 
-  /* folded: name and weapons only */
+  /* folded: name and weapons only. No interactive controls — the whole name bar
+     is the unfold trigger; colour, delete, fold arrow and the portrait are inert. */
   if(f.folded){
     const fskills=skillNamesOf(f,t);
-    return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${portraitCell(f)}${bar}
-      <div class="card-body">${wtable||`<p class="foldnote">No weapons carried.</p>`}${
-        fskills.length?`<p class="foldskills"><b>Skills:</b> ${fskills.map(escHtml).join(", ")}</p>`:""}</div>
+    /* gear with a weapon profile is shown with stats (wtable); everything else is
+       description-only equipment, listed by name in a horizontal list */
+    const foldGear=allGear.filter(g=>!profileFor(g.n,FL));
+    const foldedBar=`<div class="card-bar card-bar-folded">
+        <button class="foldname" data-fold="${f.uid}" aria-expanded="false"
+          title="Expand this card" aria-label="Expand ${escAttr(f.name)}">${escHtml(f.name)}</button>
+        <span class="card-cost">${fighterCost(f)}</span>
+      </div>`;
+    return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${portraitCell(f,{static:true})}${foldedBar}
+      <div class="card-body">
+        ${foldStatBox(f,t)}
+        ${wtable}
+        ${foldGear.length?`<p class="foldlist"><b>Equipment:</b> ${foldGear.map(g=>escHtml(g.n)+(g.q>1?` &times;${g.q}`:"")).join(", ")}</p>`:""}
+        ${fskills.length?`<p class="foldlist foldskills"><b>Skills:</b> ${fskills.map(escHtml).join(", ")}</p>`:""}
+      </div>
     </article>`;
   }
 
@@ -4630,12 +4674,16 @@ function card(f){
     ${bar}
     <div class="card-body">
       ${statTable(f,t)}
-      <p class="rule"><b>Fighter:</b> ${t.name} &middot; <b>Skill Access:</b> ${skills||"none listed"}${
-        t.buys?` &middot; <b>Weapon slots:</b> ${slotsUsed(f)} of ${slotLimitFor(f,t)}`:""}${
-        nextAdvance(t.xp)?` &middot; <b>Next Advance at:</b> ${nextAdvance(t.xp)} XP`:""}</p>
+      <div class="speclist">
+        <span class="spec"><b>Fighter</b> ${t.name}</span>
+        <span class="spec"><b>Type</b> ${t.type}</span>
+        <span class="spec"><b>XP</b> ${t.xp}${nextAdvance(t.xp)?` <span class="dim">/ ${nextAdvance(t.xp)}</span>`:""}</span>
+        <span class="spec"><b>Skill Access</b> ${skills||"none listed"}</span>
+        ${t.buys?`<span class="spec"><b>Weapon slots</b> ${slotsUsed(f)} of ${slotLimitFor(f,t)}</span>`:""}
+      </div>
       ${rules}
       ${tpBudgetLine(f,t)}
-      <div class="chips">${fixedChips}${gearChips}${tags.join("")}</div>
+      ${tags.length?`<div class="chips">${tags.join("")}</div>`:""}
       ${wtable}${notes}
       <div class="card-actions">
         ${t.buys?`<button class="mini" data-drawer="${f.uid}|gear" aria-expanded="${openDrawer===f.uid+"|gear"}">Gang Equipment</button>`:""}
@@ -5717,20 +5765,26 @@ async function loadUI(){
   }catch(err){}
 }
 async function saveUI(){ try{ await STORE.set(UI_KEY,JSON.stringify(ui)); }catch(err){} }
+const PANEL_FOLDS={recruit:["recruitPanel","recruitFolded","Recruit list"],
+                   ref:["refPanel","refFolded","Reference panel"]};
 function applyUI(){
-  const p=document.getElementById("recruitPanel");
-  if(!p) return;
-  p.classList.toggle("folded",!!ui.recruitFolded);
-  const b=p.querySelector("[data-panelfold]");
-  if(b){
-    b.setAttribute("aria-expanded",ui.recruitFolded?"false":"true");
-    b.title=ui.recruitFolded?"Show the Recruit list":"Fold the Recruit list";
-  }
+  Object.values(PANEL_FOLDS).forEach(([id,key,label])=>{
+    const p=document.getElementById(id);
+    if(!p) return;
+    p.classList.toggle("folded",!!ui[key]);
+    const b=p.querySelector("[data-panelfold]");
+    if(b){
+      b.setAttribute("aria-expanded",ui[key]?"false":"true");
+      b.title=(ui[key]?"Show the ":"Fold the ")+label;
+    }
+  });
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest?e.target.closest("[data-panelfold]"):null;
   if(!b) return;
-  ui.recruitFolded=!ui.recruitFolded;
+  const cfg=PANEL_FOLDS[b.dataset.panelfold];
+  if(!cfg) return;
+  ui[cfg[1]]=!ui[cfg[1]];
   applyUI(); saveUI();
 });
 
