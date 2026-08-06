@@ -162,16 +162,42 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
      so the framed circle always fits the column without being clipped — this holds
      on tall open cards AND on short folded cards whose height is content-driven */
   container-type:size}
-/* the frame square is centred in the column and sized to the smaller of its two
-   dimensions; the photo disc and the ring both live inside it */
-.portrait .pframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:100cqmin;height:100cqmin}
-.portrait .frameimg{position:absolute;inset:0;width:100%;height:100%;
-  object-fit:contain;z-index:2;pointer-events:none;user-select:none;display:block}
-/* disc sits just under the ring's inner edge (~78% opening) so the photo tucks
-   beneath the metal with no seam and never pokes past the frame */
-.portrait .pdisc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:80%;height:80%;border-radius:50%;overflow:hidden;z-index:1}
+/* the frame is a CSS medallion centred in the column, sized to the smaller of the
+   column's two dimensions so it fits tall open cards and short folded ones alike.
+   Its metal is drawn from the card's own accent colour (--pc) so each portrait ties
+   to its card bar — no bitmap. */
+.portrait .pframe{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:100cqmin;height:100cqmin;border-radius:50%;
+  display:grid;place-items:center;
+  /* accent-derived metal tones */
+  --f-dark:color-mix(in srgb,var(--pc,#6d2318) 60%,#100b08);
+  --f-mid: color-mix(in srgb,var(--pc,#6d2318) 84%,#241812);
+  --f-lite:color-mix(in srgb,var(--pc,#6d2318) 42%,#efe4cc);
+  --f-edge:color-mix(in srgb,var(--pc,#6d2318) 50%,#000);
+  /* brushed-metal sheen sweeping the ring, like light catching a cast bezel */
+  background:
+    conic-gradient(from 128deg,
+      var(--f-dark) 0deg, var(--f-lite) 44deg, var(--f-mid) 104deg,
+      var(--f-dark) 168deg, var(--f-mid) 214deg, var(--f-lite) 278deg,
+      var(--f-mid) 322deg, var(--f-dark) 360deg);
+  box-shadow:
+    0 2px 5px rgba(0,0,0,.34),                 /* lift the medallion off the page */
+    inset 0 0 0 1.5px var(--f-edge),           /* crisp outer rim */
+    inset 0 1px 1px rgba(255,255,255,.28),     /* top highlight */
+    inset 0 0 8px rgba(0,0,0,.42)}             /* rounded inner depth */
+/* a fine engraved groove around the bezel — echoes the page's thin hairlines */
+.portrait .pframe::before{
+  content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:87%;height:87%;border-radius:50%;pointer-events:none;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pc,#6d2318) 42%,#000),
+    0 1px 0 rgba(255,255,255,.18)}
+/* the photo disc is seated into the bezel with a dark rim and inner shadow */
+.portrait .pdisc{
+  position:relative;width:74%;height:74%;border-radius:50%;overflow:hidden;
+  background:#14100d;
+  box-shadow:0 0 0 2px var(--f-edge),0 0 0 3px color-mix(in srgb,var(--pc,#6d2318) 35%,#efe4cc),
+    inset 0 0 6px rgba(0,0,0,.6)}
 /* portraits are taller than wide, so bias the crop to the top and keep the head */
 .portrait .pdisc img{width:100%;height:100%;object-fit:cover;object-position:50% 8%;display:block}
 .portrait .pdisc .ph{width:100%;height:100%;display:block;background:
@@ -4444,9 +4470,8 @@ function portraitCell(f){
   return `<button class="portrait${src?"":" empty"}" data-portrait="${f.uid}" style="--pc:${col}"
       title="${src?"Change":"Add"} portrait for ${escAttr(f.name)}"
       aria-label="${src?"Change":"Add"} portrait for ${escAttr(f.name)}">
-      <span class="pframe">
+      <span class="pframe" aria-hidden="true">
         <span class="pdisc">${inner}<span class="ph" style="color:#fff"${src?' hidden':''}>${PH_SVG}</span></span>
-        <img class="frameimg" src="images/portraits/portrait-frame.png" alt="" aria-hidden="true">
       </span>
       <span class="cam">${src?"Change":"Add"}</span>
       ${f.portrait?`<span class="portrait-clear" role="button" tabindex="0" data-portraitclear="${f.uid}"
