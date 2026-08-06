@@ -156,21 +156,22 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .portrait{
   position:absolute;left:0;top:0;width:var(--pw,84px);
   height:100%;max-height:var(--ph,112px);
-  padding:0;border:none;border-right:1px solid var(--fcol-edge,#9c9384);
-  background:#241d18;overflow:hidden;cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-/* The metal frame (an <img> with its own square ratio) scales itself to the
-   largest square that fits the column — min(width,height) — so it works on both
-   tall open cards and short folded ones. The photo disc is stacked in the same
-   grid cell and clipped to the frame's inner circle. */
-.portrait .pframe{display:grid;place-items:center;max-width:100%;max-height:100%;line-height:0}
-.portrait .pframe>*{grid-area:1/1}
-.portrait .frameimg{max-width:100%;max-height:100%;width:auto;height:auto;
-  display:block;z-index:2;pointer-events:none;user-select:none}
-/* disc is a touch wider than the frame opening (~78%) so the photo tucks under
-   the ring with no dark seam; the ring paints on top and hides the overlap */
-.portrait .pdisc{width:80%;height:80%;border-radius:50%;overflow:hidden;z-index:1;
-  align-self:center;justify-self:center;background:#14100d}
+  padding:0;border:none;
+  background:transparent;overflow:hidden;cursor:pointer;
+  /* size containment lets the frame use cqmin = min(column width, column height),
+     so the framed circle always fits the column without being clipped — this holds
+     on tall open cards AND on short folded cards whose height is content-driven */
+  container-type:size}
+/* the frame square is centred in the column and sized to the smaller of its two
+   dimensions; the photo disc and the ring both live inside it */
+.portrait .pframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:100cqmin;height:100cqmin}
+.portrait .frameimg{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;z-index:2;pointer-events:none;user-select:none;display:block}
+/* disc sits just under the ring's inner edge (~78% opening) so the photo tucks
+   beneath the metal with no seam and never pokes past the frame */
+.portrait .pdisc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:80%;height:80%;border-radius:50%;overflow:hidden;z-index:1}
 /* portraits are taller than wide, so bias the crop to the top and keep the head */
 .portrait .pdisc img{width:100%;height:100%;object-fit:cover;object-position:50% 8%;display:block}
 .portrait .pdisc .ph{width:100%;height:100%;display:block;background:
