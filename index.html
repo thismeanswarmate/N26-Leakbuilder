@@ -157,12 +157,25 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
   position:absolute;left:0;top:0;width:var(--pw,84px);
   height:100%;max-height:var(--ph,112px);
   padding:0;border:none;border-right:1px solid var(--fcol-edge,#9c9384);
-  background:#241d18;overflow:hidden;cursor:pointer;display:block}
-/* short folded cards crop hard, so bias the crop upward and keep the head */
-.portrait img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block}
-.portrait .ph{width:100%;height:100%;display:block;background:
+  background:#241d18;overflow:hidden;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+/* The metal frame (an <img> with its own square ratio) scales itself to the
+   largest square that fits the column — min(width,height) — so it works on both
+   tall open cards and short folded ones. The photo disc is stacked in the same
+   grid cell and clipped to the frame's inner circle. */
+.portrait .pframe{display:grid;place-items:center;max-width:100%;max-height:100%;line-height:0}
+.portrait .pframe>*{grid-area:1/1}
+.portrait .frameimg{max-width:100%;max-height:100%;width:auto;height:auto;
+  display:block;z-index:2;pointer-events:none;user-select:none}
+/* disc is a touch wider than the frame opening (~78%) so the photo tucks under
+   the ring with no dark seam; the ring paints on top and hides the overlap */
+.portrait .pdisc{width:80%;height:80%;border-radius:50%;overflow:hidden;z-index:1;
+  align-self:center;justify-self:center;background:#14100d}
+/* portraits are taller than wide, so bias the crop to the top and keep the head */
+.portrait .pdisc img{width:100%;height:100%;object-fit:cover;object-position:50% 8%;display:block}
+.portrait .pdisc .ph{width:100%;height:100%;display:block;background:
   linear-gradient(160deg,color-mix(in srgb,var(--pc,#6d2318) 55%,#14100d),#14100d)}
-.portrait .ph svg{width:100%;height:100%;opacity:.5}
+.portrait .pdisc .ph svg{width:100%;height:100%;opacity:.5}
 .portrait:hover .cam,.portrait:focus-visible .cam{opacity:1}
 .portrait .cam{
   position:absolute;left:0;right:0;bottom:0;padding:2px 0;
@@ -173,9 +186,9 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
   background:rgba(0,0,0,.55);color:#fff;border:none;padding:0;cursor:pointer;opacity:0;transition:opacity .12s}
 .portrait:hover .portrait-clear,.portrait-clear:focus-visible{opacity:1}
 .portrait-clear:hover{background:var(--bad)}
-/* a portrait path that 404s falls back to the frame rather than a broken icon */
-.portrait.failed img{display:none}
-.portrait.failed .ph[hidden]{display:block}
+/* a portrait path that 404s falls back to the placeholder rather than a broken icon */
+.portrait.failed .pdisc img{display:none}
+.portrait.failed .pdisc .ph[hidden]{display:block}
 .card-bar{background:var(--fcol-bar,var(--card-bar));display:flex;align-items:center;gap:8px;padding:5px 10px}
 .swatch-btn{background:rgba(0,0,0,.25);border:none;width:24px;height:24px;padding:0;flex:none;
   display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -4430,7 +4443,10 @@ function portraitCell(f){
   return `<button class="portrait${src?"":" empty"}" data-portrait="${f.uid}" style="--pc:${col}"
       title="${src?"Change":"Add"} portrait for ${escAttr(f.name)}"
       aria-label="${src?"Change":"Add"} portrait for ${escAttr(f.name)}">
-      ${inner}<span class="ph" style="color:#fff"${src?' hidden':''}>${PH_SVG}</span>
+      <span class="pframe">
+        <span class="pdisc">${inner}<span class="ph" style="color:#fff"${src?' hidden':''}>${PH_SVG}</span></span>
+        <img class="frameimg" src="images/portraits/portrait-frame.png" alt="" aria-hidden="true">
+      </span>
       <span class="cam">${src?"Change":"Add"}</span>
       ${f.portrait?`<span class="portrait-clear" role="button" tabindex="0" data-portraitclear="${f.uid}"
          title="Remove this portrait" aria-label="Remove portrait">&times;</span>`:""}
