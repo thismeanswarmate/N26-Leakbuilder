@@ -218,7 +218,10 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 /* a portrait path that 404s falls back to the placeholder rather than a broken icon */
 .portrait.failed .pdisc img{display:none}
 .portrait.failed .pdisc .ph[hidden]{display:block}
-.card-bar{background:var(--fcol-bar,var(--card-bar));display:flex;align-items:center;gap:8px;padding:5px 10px}
+/* the bar reaches the card's left edge, running underneath the medallion; the
+   extra left padding keeps the name clear of the portrait column */
+.card-bar{background:var(--fcol-bar,var(--card-bar));display:flex;align-items:center;gap:8px;
+  margin-left:calc(-1 * var(--pw,84px));padding:5px 10px 5px calc(var(--pw,84px) + 10px)}
 .swatch-btn{background:rgba(0,0,0,.25);border:none;width:24px;height:24px;padding:0;flex:none;
   display:flex;align-items:center;justify-content:center;cursor:pointer}
 .swatch-btn:hover{background:rgba(0,0,0,.5)}
