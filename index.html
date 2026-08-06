@@ -305,6 +305,8 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 
 .wtable{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:11px}
 .wtable th{font-family:var(--display);font-size:9.5px;letter-spacing:.12em;color:var(--maroon);text-align:left;border-bottom:1px solid var(--maroon);padding:2px 4px}
+/* numeric column headers centre over their centred values (SR/LR/Str/AP/L) */
+.wtable th:not(:first-child):not(:last-child){text-align:center}
 .wtable td{padding:3px 4px;border-bottom:1px solid var(--bone-line);vertical-align:top}
 .wtable tr:nth-child(even) td{background:#e2ded5}
 .wtable td.num{font-family:var(--mono);text-align:center;white-space:nowrap}
