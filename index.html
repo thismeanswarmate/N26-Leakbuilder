@@ -436,22 +436,6 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
   color:#5d564b;text-transform:uppercase;display:block}
 .setup-body h2{font-size:26px;color:var(--maroon);margin:2px 0 6px}
 .setup-note{margin:0 0 14px;font-size:12px;color:var(--text-dim)}
-.setup-load h3{font-family:var(--display);font-size:11px;letter-spacing:.18em;color:#5d564b;
-  text-transform:uppercase;margin:0 0 6px}
-.loadlist{display:flex;flex-direction:column;gap:4px;max-height:210px;overflow:auto;
-  border:1px solid var(--bone-line);background:rgba(255,255,255,.35);padding:4px}
-.loadrow{
-  display:flex;align-items:baseline;gap:8px;width:100%;text-align:left;
-  background:var(--panel);border:1px solid var(--bone-line);padding:6px 9px;cursor:pointer;
-  font-family:inherit;font-size:13px;color:var(--text)}
-.loadrow:hover{background:var(--maroon);border-color:var(--maroon);color:#f6f4ef}
-.loadrow:hover .loadmeta{color:rgba(246,244,239,.8)}
-.loadrow .loadname{font-weight:600}
-.loadrow .loadmeta{margin-left:auto;font-size:11px;color:var(--text-dim);white-space:nowrap}
-.setup-or[hidden]{display:none}
-.setup-or{display:flex;align-items:center;gap:10px;margin:14px 0 10px;
-  font-family:var(--display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5d564b}
-.setup-or::before,.setup-or::after{content:"";flex:1;height:1px;background:var(--bone-line)}
 .setup-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
 .setup-row .field{flex:none;min-width:0}
 .setup-row .field.grow{flex:1 1 200px}
@@ -715,12 +699,6 @@ details.notes p{margin:8px 0}
       <span class="eyebrow">Necromunda roster</span>
       <h2 id="setupTitle">Found a new gang</h2>
 
-      <div class="setup-load" id="setupLoad" hidden>
-        <h3>Load a saved gang</h3>
-        <div class="loadlist" id="setupLoadList"></div>
-      </div>
-      <div class="setup-or" id="setupOr" hidden><span>or found a new one</span></div>
-
       <p class="setup-note">Gang type is fixed once the gang is founded. Everything else can be changed later.</p>
 
       <div class="setup-row">
@@ -907,7 +885,7 @@ async function cloudPull(mergeLocal){
     cloudState="error";
     cloudMsg=cloudErrText(err,"load");
   }
-  renderAccount(); renderStorageNote(); renderSetupLoad();
+  renderAccount(); renderStorageNote();
 }
 
 const dirtyGangs=new Set(), removedGangs=new Set();
@@ -6437,30 +6415,12 @@ function openSetup(){
   document.getElementById("setupName").value="";
   setupCreditsTouched=false;
   setupSyncGang();
-  renderSetupLoad();
   /* nothing to go back to when there is no roster yet */
   document.getElementById("setupCancel").style.display=state?"":"none";
   document.getElementById("setup").hidden=false;
   setTimeout(()=>document.getElementById("setupGang").focus(),0);
 }
 function closeSetup(){ document.getElementById("setup").hidden=true; }
-/* saved rosters offered at the top of the setup screen */
-function renderSetupLoad(){
-  const box=document.getElementById("setupLoad"), or=document.getElementById("setupOr");
-  const list=Object.keys(library.gangs).map(k=>library.gangs[k])
-    .sort((a,b)=>(b.updated||0)-(a.updated||0));
-  if(!list.length){ box.hidden=true; or.hidden=true; return; }
-  box.hidden=false; or.hidden=false;
-  document.getElementById("setupLoadList").innerHTML=list.map(g=>{
-    const type=GANGS[g.gangId]?GANGS[g.gangId].name:g.gangId;
-    const when=g.updated?new Date(g.updated).toLocaleDateString():"";
-    const cult=g.corrupted?(g.cult==="gsc"?" · Genestealer":g.cult==="malstrain"?" · Malstrain":" · Chaos"):"";
-    return `<button class="loadrow" data-load="${g.id}">
-      <span class="loadname">${escHtml(g.gangName)||"Unnamed gang"}</span>
-      <span class="loadmeta">${type}${cult} &middot; ${g.fighters.length} models &middot; ${ratingOf(g)} cr${when?" &middot; "+when:""}</span>
-    </button>`;
-  }).join("");
-}
 function createFromSetup(){
   const id=document.getElementById("setupGang").value;
   const st=blankState(id);
@@ -6480,15 +6440,6 @@ document.getElementById("setupGang").addEventListener("change",setupSyncGang);
 document.getElementById("setupCredits").addEventListener("input",()=>{ setupCreditsTouched=true; });
 document.getElementById("setupCreate").addEventListener("click",createFromSetup);
 document.getElementById("setupImport").addEventListener("click",()=>document.getElementById("fileIn").click());
-document.getElementById("setupLoadList").addEventListener("click",e=>{
-  const b=e.target.closest("[data-load]");
-  if(!b) return;
-  const g=library.gangs[b.dataset.load];
-  if(!g) return;
-  closeSetup();
-  openGang(g.id);
-  toast(`${g.gangName||"Unnamed gang"} loaded`);
-});
 document.getElementById("setupCancel").addEventListener("click",()=>{ if(state) closeSetup(); });
 document.getElementById("setup").addEventListener("keydown",e=>{
   if(e.key==="Escape"&&state) closeSetup();
