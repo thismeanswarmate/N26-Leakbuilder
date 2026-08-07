@@ -66,7 +66,12 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .topbar-top{align-items:center;justify-content:space-between;
   border-bottom:1px solid rgba(0,0,0,.1);padding-bottom:9px}
 .topbar-controls .readout{margin-left:auto}
-.topbar-tools{margin-left:auto;justify-content:flex-end}
+.topbar-tools{margin-left:auto;justify-content:flex-end;align-items:center}
+.tool-sep{width:1px;align-self:stretch;background:#9c9384;margin:0 6px;flex:none}
+/* gang type / path / corruption collapse behind the Gang setup toggle */
+.gang-settings{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.gang-settings[hidden]{display:none}
+#btnGangSettings{height:33px}
 .brand{display:flex;flex-direction:column;gap:1px}
 .brand .eyebrow{font-family:var(--display);font-size:11px;letter-spacing:.3em;color:#5d564b;text-transform:uppercase}
 .brand h1{font-size:30px;line-height:1;color:var(--maroon);letter-spacing:.01em;text-shadow:0 1px 0 rgba(255,255,255,.55)}
@@ -251,7 +256,9 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .card-bar input{flex:1;background:transparent;border:none;color:#fff;font-family:var(--display);font-size:20px;letter-spacing:.03em;text-transform:uppercase;padding:2px 4px;min-width:0}
 .card-bar input:hover{background:rgba(255,255,255,.14)}
 .card-bar input:focus{background:rgba(0,0,0,.25);outline:none}
-.card-cost{font-family:var(--display);font-weight:700;color:#fff;font-size:15px;white-space:nowrap;letter-spacing:.06em}
+/* cost reads as the same right-hand badge the Recruit list uses */
+.card-cost{font-family:var(--display);font-weight:700;color:#fff;font-size:14px;white-space:nowrap;
+  letter-spacing:.06em;background:rgba(0,0,0,.28);padding:3px 10px;flex:none}
 /* folded card: the name doubles as the (only) control — click it to expand */
 .foldname{flex:1;text-align:left;background:transparent;border:none;color:#fff;
   font-family:var(--display);font-size:20px;letter-spacing:.03em;text-transform:uppercase;
@@ -505,6 +512,14 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .tool:hover{background:var(--maroon);color:#fff;border-color:var(--maroon)}
 .tool.danger:hover{background:var(--bad);border-color:var(--bad);color:#fff}
 
+/* ---------- gang summary strip under the roster ---------- */
+.gang-summary .panel-body{display:flex;flex-wrap:wrap;gap:6px}
+.sumcell{border:1px solid #b6ac9b;background:#f2efe9;padding:5px 14px;text-align:center;min-width:84px}
+.sumcell .k{font-family:var(--display);font-size:9.5px;letter-spacing:.16em;color:var(--maroon);display:block}
+.sumcell .v{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink)}
+.sumcell .s{display:block;font-family:var(--mono);font-size:10.5px;color:var(--text-dim)}
+.sumcell.total{border-left:3px solid var(--maroon)}
+
 .gangrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#f3f1ea;border:1px solid #b6ac9b;border-left:3px solid #b6ac9b;padding:8px 10px;margin-bottom:6px}
 .gangrow.current{border-left-color:var(--accent);background:#fff}
 .gangrow.pending{border-color:var(--bad);border-left-color:var(--bad);background:rgba(163,35,27,.07)}
@@ -535,12 +550,12 @@ details.notes p{margin:8px 0}
 .xptable td:first-child{font-family:var(--mono);color:var(--ink);white-space:nowrap;width:82px}
 
 .toast{
-  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  position:fixed;right:22px;bottom:22px;transform:translateY(20px);
   background:var(--maroon);border:1px solid #40140d;color:#fff;padding:9px 18px;
   font-family:var(--display);letter-spacing:.12em;font-size:12px;text-transform:uppercase;
   opacity:0;pointer-events:none;transition:.2s;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.3);
 }
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.show{opacity:1;transform:translateY(0)}
 
 @media print{
   body{background:#fff}
@@ -566,15 +581,20 @@ details.notes p{margin:8px 0}
         <button class="tool" id="btnExport">Export JSON</button>
         <button class="tool" id="btnText">Copy as text</button>
         <button class="tool" id="btnPrint">Print</button>
+        <div class="acct" id="acct" style="display:none"></div>
+        <span class="tool-sep" aria-hidden="true"></span>
         <button class="tool danger" id="btnClear">Clear roster</button>
         <input type="file" id="fileIn" accept="application/json" hidden>
       </div>
-      <div class="acct" id="acct" style="display:none"></div>
     </div>
     <div class="topbar-row topbar-controls">
-      <div class="field"><label>Gang</label><div class="static" id="gangStatic" title="Gang type is chosen when the gang is created and cannot be changed">&mdash;</div></div>
-      <div class="field" id="pathField" style="display:none"><label for="pathSelect">Path</label><select id="pathSelect"></select></div>
-      <div class="field" id="chaosField" style="display:none"><label for="chaosSelect">Corruption</label><select id="chaosSelect"></select></div>
+      <button class="tool" id="btnGangSettings" aria-expanded="false" aria-controls="gangSettings"
+        title="Show gang type, path and corruption">Gang setup &#9656;</button>
+      <div class="gang-settings" id="gangSettings" hidden>
+        <div class="field"><label>Gang</label><div class="static" id="gangStatic" title="Gang type is chosen when the gang is created and cannot be changed">&mdash;</div></div>
+        <div class="field" id="pathField" style="display:none"><label for="pathSelect">Path</label><select id="pathSelect"></select></div>
+        <div class="field" id="chaosField" style="display:none"><label for="chaosSelect">Corruption</label><select id="chaosSelect"></select></div>
+      </div>
       <div class="field grow"><label for="gangName">Gang name</label><input id="gangName" placeholder="Name your gang"></div>
       <div class="field"><label for="budget">Credits</label><input id="budget" type="number" min="0" step="50" value="1000"></div>
       <div class="readout">
@@ -604,6 +624,10 @@ details.notes p{margin:8px 0}
   <section class="col-main">
     <div class="alerts" id="alerts"></div>
     <div class="roster" id="roster"></div>
+    <div class="panel gang-summary" id="gangSummary" style="display:none;margin-top:18px">
+      <div class="panel-head"><h2>Gang summary</h2><span class="sub">Models and rating by role</span></div>
+      <div class="panel-body" id="sumCells"></div>
+    </div>
   </section>
 
   <section class="panel col-ref" id="refPanel">
@@ -4277,7 +4301,7 @@ function render(){
   document.getElementById("brandTitle").textContent=state.gangName||"Underhive Roster";
   document.querySelector(".brand .eyebrow").textContent=`${g.name} \u2013 Gang Roster`;
   document.getElementById("recruitSub").textContent=g.name;
-  renderRecruit(); sortRoster(); renderRoster(); renderReadout(); renderAlerts(); renderStatic(); renderRef(); renderGangs();
+  renderRecruit(); sortRoster(); renderRoster(); renderReadout(); renderSummary(); renderAlerts(); renderStatic(); renderRef(); renderGangs();
   save();
   applyFilters();
   if(pickerFor) placePicker();
@@ -4294,6 +4318,24 @@ function renderReadout(){
   const b=document.getElementById("roBalance");
   b.textContent=`${restricted}/${rank}`;
   b.className="v "+(restricted>rank?"over":"ok");
+}
+
+/* compact strip under the roster: model counts and credits spent per role */
+function renderSummary(){
+  const box=document.getElementById("gangSummary");
+  if(!box) return;
+  if(!state||!state.fighters.length){ box.style.display="none"; return; }
+  box.style.display="";
+  const cells=ROLE_ORDER.map(role=>{
+    const list=state.fighters.filter(f=>ftype(f.typeId).role===role);
+    if(!list.length) return "";
+    const cost=list.reduce((s,f)=>s+fighterCost(f),0);
+    return `<div class="sumcell"><span class="k">${role}${list.length>1?"s":""}</span>`
+      +`<span class="v">${list.length}</span><span class="s">${cost} cr</span></div>`;
+  }).join("");
+  document.getElementById("sumCells").innerHTML=cells
+    +`<div class="sumcell total"><span class="k">Rating</span><span class="v">${totalCost()}</span>`
+    +`<span class="s">${state.fighters.length} model${state.fighters.length>1?"s":""}</span></div>`;
 }
 
 function renderRecruit(){
@@ -6001,7 +6043,7 @@ document.addEventListener("keydown",e=>{
 
 /* Panel fold state is a view preference, not roster data, so it lives under its
    own key and never counts as an edit or reaches the account. */
-let ui={recruitFolded:false};
+let ui={recruitFolded:false,gangSettings:false};
 async function loadUI(){
   try{
     const r=await STORE.get(UI_KEY);
@@ -6011,24 +6053,44 @@ async function loadUI(){
 async function saveUI(){ try{ await STORE.set(UI_KEY,JSON.stringify(ui)); }catch(err){} }
 const PANEL_FOLDS={recruit:["recruitPanel","recruitFolded","Recruit list"],
                    ref:["refPanel","refFolded","Reference panel"]};
+/* Until the user has toggled it themselves, the Reference panel starts folded
+   on narrow screens where three columns would fight for space. */
+const refMQ=window.matchMedia("(max-width:1200px)");
+function foldedNow(key){
+  if(ui[key]!==undefined) return !!ui[key];
+  return key==="refFolded"&&refMQ.matches;
+}
 function applyUI(){
   Object.values(PANEL_FOLDS).forEach(([id,key,label])=>{
     const p=document.getElementById(id);
     if(!p) return;
-    p.classList.toggle("folded",!!ui[key]);
+    const f=foldedNow(key);
+    p.classList.toggle("folded",f);
     const b=p.querySelector("[data-panelfold]");
     if(b){
-      b.setAttribute("aria-expanded",ui[key]?"false":"true");
-      b.title=(ui[key]?"Show the ":"Fold the ")+label;
+      b.setAttribute("aria-expanded",f?"false":"true");
+      b.title=(f?"Show the ":"Fold the ")+label;
     }
   });
+  const gs=document.getElementById("gangSettings"), gb=document.getElementById("btnGangSettings");
+  if(gs&&gb){
+    gs.hidden=!ui.gangSettings;
+    gb.setAttribute("aria-expanded",ui.gangSettings?"true":"false");
+    gb.innerHTML="Gang setup "+(ui.gangSettings?"&#9662;":"&#9656;");
+    gb.title=(ui.gangSettings?"Hide":"Show")+" gang type, path and corruption";
+  }
 }
+if(refMQ.addEventListener) refMQ.addEventListener("change",applyUI);
 document.addEventListener("click",e=>{
   const b=e.target.closest?e.target.closest("[data-panelfold]"):null;
   if(!b) return;
   const cfg=PANEL_FOLDS[b.dataset.panelfold];
   if(!cfg) return;
-  ui[cfg[1]]=!ui[cfg[1]];
+  ui[cfg[1]]=!foldedNow(cfg[1]);
+  applyUI(); saveUI();
+});
+document.getElementById("btnGangSettings").addEventListener("click",()=>{
+  ui.gangSettings=!ui.gangSettings;
   applyUI(); saveUI();
 });
 
