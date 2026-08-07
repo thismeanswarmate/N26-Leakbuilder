@@ -66,6 +66,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .topbar-top{align-items:center;justify-content:space-between;
   border-bottom:1px solid rgba(0,0,0,.1);padding-bottom:9px}
 .topbar-controls .readout{margin-left:auto}
+.topbar-tools{margin-left:auto;justify-content:flex-end}
 .brand{display:flex;flex-direction:column;gap:1px}
 .brand .eyebrow{font-family:var(--display);font-size:11px;letter-spacing:.3em;color:#5d564b;text-transform:uppercase}
 .brand h1{font-size:30px;line-height:1;color:var(--maroon);letter-spacing:.01em;text-shadow:0 1px 0 rgba(255,255,255,.55)}
@@ -558,6 +559,16 @@ details.notes p{margin:8px 0}
   <div class="topbar-inner">
     <div class="topbar-row topbar-top">
       <div class="brand"><span class="eyebrow">Necromunda roster</span><h1 id="brandTitle">Underhive Roster</h1></div>
+      <div class="tools topbar-tools">
+        <button class="tool" id="btnLoad">Load gang</button>
+        <button class="tool" id="btnNew">New gang</button>
+        <button class="tool" id="btnImport">Import JSON</button>
+        <button class="tool" id="btnExport">Export JSON</button>
+        <button class="tool" id="btnText">Copy as text</button>
+        <button class="tool" id="btnPrint">Print</button>
+        <button class="tool danger" id="btnClear">Clear roster</button>
+        <input type="file" id="fileIn" accept="application/json" hidden>
+      </div>
       <div class="acct" id="acct" style="display:none"></div>
     </div>
     <div class="topbar-row topbar-controls">
@@ -593,22 +604,6 @@ details.notes p{margin:8px 0}
   <section class="col-main">
     <div class="alerts" id="alerts"></div>
     <div class="roster" id="roster"></div>
-    <div class="panel" style="margin-top:18px">
-      <div class="panel-head"><h2>Roster file</h2></div>
-      <div class="panel-body tools">
-        <button class="tool" id="btnNew">New gang</button>
-        <button class="tool" id="btnExport">Export JSON</button>
-        <button class="tool" id="btnImport">Import JSON</button>
-        <button class="tool" id="btnText">Copy as text</button>
-        <button class="tool" id="btnPrint">Print</button>
-        <button class="tool danger" id="btnClear">Clear roster</button>
-        <input type="file" id="fileIn" accept="application/json" hidden>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Saved gangs</h2><span class="sub">Saved automatically</span></div>
-      <div class="panel-body"><div id="storeNote" class="storenote" style="display:none"></div><div id="gangList"></div></div>
-    </div>
   </section>
 
   <section class="panel col-ref" id="refPanel">
@@ -663,6 +658,22 @@ details.notes p{margin:8px 0}
         <button class="tool" id="setupImport">Import from file</button>
         <button class="tool" id="setupCancel">Cancel</button>
         <button class="tool primary" id="setupCreate">Found gang</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="load" class="setup" hidden>
+  <div class="setup-card" role="dialog" aria-modal="true" aria-labelledby="loadTitle">
+    <div class="setup-bar"></div>
+    <div class="setup-body">
+      <span class="eyebrow">Necromunda roster</span>
+      <h2 id="loadTitle">Saved gangs</h2>
+      <p class="setup-note">Gangs are saved automatically as you edit them.</p>
+      <div id="storeNote" class="storenote" style="display:none"></div>
+      <div id="gangList"></div>
+      <div class="setup-actions">
+        <button class="tool" id="loadClose">Close</button>
       </div>
     </div>
   </div>
@@ -804,7 +815,7 @@ async function cloudPull(mergeLocal){
       state=merged[library.current];
       closeSetup(); syncInputs(); render();
     } else {
-      state=null; renderGangs(); openSetup();
+      state=null; renderGangs(); closeLoad(); openSetup();
     }
     upload.forEach(id=>dirtyGangs.add(id));
     if(upload.length) await cloudPush();
@@ -4532,7 +4543,7 @@ const PORTRAITS={
     "drillkyn":"images/portraits/ironhead-squats/portrait-ironhead-squats-drill-kyn.png",
     "exokyn":"images/portraits/ironhead-squats/portrait-ironhead-squats-exo-kyn.png",
     "digger":"images/portraits/ironhead-squats/portrait-ironhead-squats-digger.png",
-    "vartijan":"images/portraits/ironhead-squats/portrait-ironhead-squats-vartijan-exo-driller.png",
+    "vartijan":"images/portraits/ironhead-squats/portrait-ironhead-squats-exo-driller.png",
     "exovator":"images/portraits/ironhead-squats/portrait-ironhead-squats-techmite-exovator.png",
     "oculi":"images/portraits/ironhead-squats/portrait-ironhead-squats-techmite-oculi.png",
     "skalvian":"images/portraits/ironhead-squats/portrait-ironhead-squats-skalvian-explorator.png"
@@ -4664,12 +4675,12 @@ const PORTRAITS={
   },
   /* Spyre Hunting Party */
   spyres:{
-    "huntmaster":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-hunt-master.png",
-    "jakara":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-jakara-spyre-hunter.png",
-    "malcadon":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-malcadon-spyre-hunter.png",
-    "orrus":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-orrus-spyre-hunter.png",
-    "yeld":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-yeld-spyre-hunter.png",
-    "caryatid":"images/portraits/spyre-hunting-party/portrait-spyre-hunting-party-caryatid-prime.png"
+    "huntmaster":"images/portraits/spyres/portrait-spyres-hunt-master.png",
+    "jakara":"images/portraits/spyres/portrait-spyres-jakara.png",
+    "malcadon":"images/portraits/spyres/portrait-spyres-malcador.png",
+    "orrus":"images/portraits/spyres/portrait-spyres-orrus.png",
+    "yeld":"images/portraits/spyres/portrait-spyres-yeld.png",
+    "caryatid":"images/portraits/spyres/portrait-spyres-caryatid-prime.png"
   },
   /* The Malstrain */
   malstrain:{
@@ -5484,7 +5495,7 @@ document.addEventListener("click",e=>{
   }
   const gb=e.target.closest("[data-open],[data-copy],[data-del],[data-delok],[data-delno]");
   if(gb){
-    if(gb.dataset.open){ pendingDelete=null; return openGang(gb.dataset.open); }
+    if(gb.dataset.open){ pendingDelete=null; closeLoad(); return openGang(gb.dataset.open); }
     if(gb.dataset.del){ pendingDelete=gb.dataset.del; return renderGangs(); }
     if(gb.dataset.delno){ pendingDelete=null; return renderGangs(); }
     if(gb.dataset.copy){
@@ -5507,7 +5518,7 @@ document.addEventListener("click",e=>{
       const rest=Object.keys(library.gangs);
       if(state.id===id){
         if(rest.length){ state=library.gangs[rest[0]]; openDrawer=null; syncInputs(); render(); }
-        else { state=null; library.current=null; renderGangs(); save(); openSetup(); return toast(`Deleted ${label}`); }
+        else { state=null; library.current=null; renderGangs(); save(); closeLoad(); openSetup(); return toast(`Deleted ${label}`); }
       } else render();
       return toast(`Deleted ${label}`);
     }
@@ -5659,6 +5670,18 @@ document.getElementById("budget").addEventListener("input",e=>{
   state.budget=parseInt(e.target.value||"0",10); renderReadout(); renderAlerts(); save();
 });
 document.getElementById("btnNew").addEventListener("click",()=>openSetup());
+/* ---- saved-gang dialog, opened from the header's Load gang button ---- */
+function openLoad(){
+  pendingDelete=null;
+  renderGangs();
+  renderStorageNote();
+  document.getElementById("load").hidden=false;
+  setTimeout(()=>document.getElementById("loadClose").focus(),0);
+}
+function closeLoad(){ document.getElementById("load").hidden=true; }
+document.getElementById("btnLoad").addEventListener("click",openLoad);
+document.getElementById("loadClose").addEventListener("click",closeLoad);
+document.getElementById("load").addEventListener("keydown",e=>{ if(e.key==="Escape") closeLoad(); });
 
 
 document.getElementById("btnExport").addEventListener("click",()=>{
