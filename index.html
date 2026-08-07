@@ -132,8 +132,6 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 }
 @media (max-width:400px){
   .card{--pw:54px;--ph:72px}
-  .readout{width:100%}
-  .readout div{flex:1;min-width:0;padding:5px 4px}
 }
 
 /* ---------- recruit list ---------- */
@@ -433,6 +431,7 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .loadrow:hover .loadmeta{color:rgba(246,244,239,.8)}
 .loadrow .loadname{font-weight:600}
 .loadrow .loadmeta{margin-left:auto;font-size:11px;color:var(--text-dim);white-space:nowrap}
+.setup-or[hidden]{display:none}
 .setup-or{display:flex;align-items:center;gap:10px;margin:14px 0 10px;
   font-family:var(--display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5d564b}
 .setup-or::before,.setup-or::after{content:"";flex:1;height:1px;background:var(--bone-line)}
@@ -557,6 +556,39 @@ details.notes p{margin:8px 0}
 }
 .toast.show{opacity:1;transform:translateY(0)}
 
+/* ---------- phones ----------
+   Sits at the end of the sheet so these override the base rules above. */
+@media (max-width:640px){
+  .topbar-inner{padding:8px 10px 10px;gap:8px}
+  .topbar-top{padding-bottom:7px}
+  /* the toolbar drops to its own compact row: smaller type, tighter gaps */
+  .topbar-tools{margin-left:0;width:100%;justify-content:flex-start;gap:4px}
+  .topbar-tools .tool{padding:5px 8px;font-size:10px;letter-spacing:.09em}
+  .tool-sep{margin:0 2px}
+  .topbar-controls{gap:8px 10px}
+  .gang-settings{gap:8px 10px;width:100%}
+  .field.grow{max-width:none}
+  .readout{width:100%}
+  .readout div{flex:1;min-width:0;padding:4px 2px}
+  .readout .k{font-size:8.5px;letter-spacing:.1em}
+  .readout .v{font-size:16px}
+  .wrap{padding:12px 10px 60px}
+  .panel-body{padding:10px}
+  .card-body{padding:8px 10px 10px}
+  .card-bar{gap:6px;padding:5px 8px 5px calc(var(--pw,84px) + 8px)}
+  .card-bar input{font-size:16px}
+  /* statline cells flex to the available width instead of fixed 22px slots,
+     so the Int column is never clipped on a narrow card */
+  .sf{width:auto;flex:1 1 0;min-width:0}
+  .sf-b{margin-left:6px}
+  .sf-head .sf{font-size:8.5px;letter-spacing:.03em}
+  .sf-val .sf{font-size:11px}
+  .wtable{font-size:11px}
+  .sumcell{flex:1 1 90px;min-width:0;padding:4px 8px}
+  .setup{padding:10px}
+  .setup-body{padding:12px 12px 14px}
+  .toast{left:10px;right:10px;text-align:center}
+}
 @media print{
   body{background:#fff}
   .topbar,.col-recruit,.col-ref,.card-actions,.drawer,.tools,.alerts,.icon-btn,.panel-head{display:none !important}
