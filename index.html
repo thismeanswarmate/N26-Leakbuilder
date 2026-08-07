@@ -66,8 +66,22 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .topbar-top{align-items:center;justify-content:space-between;
   border-bottom:1px solid rgba(0,0,0,.1);padding-bottom:9px}
 .topbar-controls .readout{margin-left:auto}
-.topbar-tools{margin-left:auto;justify-content:flex-end;align-items:center}
-.tool-sep{width:1px;align-self:stretch;background:#9c9384;margin:0 6px;flex:none}
+.topbar-tools{margin-left:auto;justify-content:flex-end;align-items:center;gap:12px}
+.tool-sep{width:1px;align-self:stretch;background:#9c9384;margin:0 2px;flex:none}
+/* related buttons fuse into one segmented unit so the toolbar reads as groups,
+   not a run of identical buttons */
+.btn-group{display:flex;flex:none}
+.btn-group .tool+.tool{margin-left:-1px}
+.btn-group .tool:hover{position:relative;z-index:1}
+/* file operations live in one drop-down instead of four loose buttons */
+.menu-wrap{position:relative;flex:none}
+.menu{position:absolute;top:calc(100% + 4px);left:0;z-index:75;min-width:172px;
+  display:flex;flex-direction:column;padding:4px;
+  background:var(--sheet);border:1px solid #8f8577;box-shadow:0 8px 26px rgba(0,0,0,.3)}
+.menu[hidden]{display:none}
+.menuitem{text-align:left;background:none;border:none;padding:8px 12px;cursor:pointer;
+  font-family:var(--display);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#3b352d}
+.menuitem:hover{background:var(--maroon);color:#fff}
 /* gang type / path / corruption collapse behind the Gang setup toggle */
 .gang-settings{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
 .gang-settings[hidden]{display:none}
@@ -381,10 +395,13 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .ftrait{display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer}
 .ftrait input{margin:0;flex:none}
 .fbtns{display:flex;gap:8px;margin-top:10px}
-.acct{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.acct-note{font-size:11.5px;color:#5d564b}
+/* the account block reads as one attached unit: identity chip + its actions */
+.acct{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.acct .tool{margin-left:-1px}
+.acct .tool:hover{position:relative;z-index:1}
+.acct-note{font-size:11.5px;color:#5d564b;align-self:center}
 .acct-who{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.4);
-  border:1px solid #a49a89;padding:3px 8px;max-width:190px}
+  border:1px solid #9c9384;padding:3px 10px;max-width:190px}
 .acct-who img{width:20px;height:20px;border-radius:50%;flex:none}
 .acct-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-dot{width:8px;height:8px;border-radius:50%;flex:none;background:#4a7d3f}
@@ -562,9 +579,11 @@ details.notes p{margin:8px 0}
   .topbar-inner{padding:8px 10px 10px;gap:8px}
   .topbar-top{padding-bottom:7px}
   /* the toolbar drops to its own compact row: smaller type, tighter gaps */
-  .topbar-tools{margin-left:0;width:100%;justify-content:flex-start;gap:4px}
+  .topbar-tools{margin-left:0;width:100%;justify-content:flex-start;gap:6px}
   .topbar-tools .tool{padding:5px 8px;font-size:10px;letter-spacing:.09em}
-  .tool-sep{margin:0 2px}
+  .menuitem{font-size:10px;padding:7px 10px}
+  /* the button rows wrap anyway, so the divider before Clear is just noise here */
+  .tool-sep{display:none}
   .topbar-controls{gap:8px 10px}
   .gang-settings{gap:8px 10px;width:100%}
   .field.grow{max-width:none}
@@ -607,12 +626,20 @@ details.notes p{margin:8px 0}
     <div class="topbar-row topbar-top">
       <div class="brand"><span class="eyebrow">Necromunda roster</span><h1 id="brandTitle">Underhive Roster</h1></div>
       <div class="tools topbar-tools">
-        <button class="tool" id="btnLoad">Load gang</button>
-        <button class="tool" id="btnNew">New gang</button>
-        <button class="tool" id="btnImport">Import JSON</button>
-        <button class="tool" id="btnExport">Export JSON</button>
-        <button class="tool" id="btnText">Copy as text</button>
-        <button class="tool" id="btnPrint">Print</button>
+        <div class="btn-group">
+          <button class="tool" id="btnLoad">Load gang</button>
+          <button class="tool" id="btnNew">New gang</button>
+        </div>
+        <div class="menu-wrap">
+          <button class="tool" id="btnFile" aria-haspopup="true" aria-expanded="false"
+            aria-controls="fileMenu">Roster file &#9662;</button>
+          <div class="menu" id="fileMenu" hidden>
+            <button class="menuitem" id="btnImport">Import JSON</button>
+            <button class="menuitem" id="btnExport">Export JSON</button>
+            <button class="menuitem" id="btnText">Copy as text</button>
+            <button class="menuitem" id="btnPrint">Print</button>
+          </div>
+        </div>
         <div class="acct" id="acct" style="display:none"></div>
         <span class="tool-sep" aria-hidden="true"></span>
         <button class="tool danger" id="btnClear">Clear roster</button>
@@ -5756,6 +5783,18 @@ function closeLoad(){ document.getElementById("load").hidden=true; }
 document.getElementById("btnLoad").addEventListener("click",openLoad);
 document.getElementById("loadClose").addEventListener("click",closeLoad);
 document.getElementById("load").addEventListener("keydown",e=>{ if(e.key==="Escape") closeLoad(); });
+/* ---- Roster file drop-down in the header ---- */
+const fileMenu=document.getElementById("fileMenu"), btnFile=document.getElementById("btnFile");
+function closeFileMenu(){ fileMenu.hidden=true; btnFile.setAttribute("aria-expanded","false"); }
+btnFile.addEventListener("click",e=>{
+  e.stopPropagation();
+  const open=fileMenu.hidden;
+  fileMenu.hidden=!open;
+  btnFile.setAttribute("aria-expanded",open?"true":"false");
+});
+document.addEventListener("click",e=>{ if(!e.target.closest(".menu-wrap")) closeFileMenu(); });
+fileMenu.addEventListener("click",e=>{ if(e.target.closest(".menuitem")) closeFileMenu(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeFileMenu(); });
 
 
 document.getElementById("btnExport").addEventListener("click",()=>{
