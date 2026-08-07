@@ -60,18 +60,26 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
   box-shadow:0 4px 14px rgba(0,0,0,.18);
 }
 .topbar-stripe{height:3px;background:linear-gradient(90deg,var(--maroon) 0%,var(--tan) 45%,rgba(168,84,60,0) 100%)}
-.topbar-inner{max-width:1260px;margin:0 auto;padding:10px 18px 12px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
-.brand{display:flex;flex-direction:column;gap:1px;margin-right:auto}
+/* two rows: brand + account on top, gang controls + readout beneath */
+.topbar-inner{max-width:1260px;margin:0 auto;padding:12px 18px 14px;display:flex;flex-direction:column;gap:10px}
+.topbar-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.topbar-top{align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(0,0,0,.1);padding-bottom:9px}
+.topbar-controls .readout{margin-left:auto}
+.brand{display:flex;flex-direction:column;gap:1px}
 .brand .eyebrow{font-family:var(--display);font-size:11px;letter-spacing:.3em;color:#5d564b;text-transform:uppercase}
 .brand h1{font-size:30px;line-height:1;color:var(--maroon);letter-spacing:.01em;text-shadow:0 1px 0 rgba(255,255,255,.55)}
 .field{display:flex;flex-direction:column;gap:3px}
-.field label{font-family:var(--display);font-size:10px;letter-spacing:.18em;color:#5d564b}
-.field input,.field select{
-  background:#f6f4ef;border:1px solid #9c9384;border-radius:0;padding:6px 8px;min-width:0;
+.field.grow{flex:1 1 200px;max-width:320px}
+.field label{font-family:var(--display);font-size:10px;letter-spacing:.18em;color:#5d564b;text-transform:uppercase}
+.field input,.field select,.field .static{
+  background:#f6f4ef;border:1px solid #9c9384;border-radius:0;padding:6px 9px;min-width:0;
+  height:33px;box-sizing:border-box;font-size:13.5px;
   box-shadow:inset 0 1px 2px rgba(0,0,0,.08);
 }
-.field input[type=number]{width:110px}
-#gangName{width:220px}
+.field .static{background:#e6e2d9;border-color:#b8b0a0;display:flex;align-items:center}
+.field input[type=number]{width:96px}
+.field.grow input{width:100%}
 
 .readout{display:flex;border:1px solid #6f6659;background:#f2efe9}
 .readout div{padding:5px 14px;border-right:1px solid #b6ac9b;text-align:center;min-width:84px}
@@ -548,18 +556,22 @@ details.notes p{margin:8px 0}
 <header class="topbar">
   <div class="topbar-stripe"></div>
   <div class="topbar-inner">
-    <div class="brand"><span class="eyebrow">Necromunda roster</span><h1 id="brandTitle">Underhive Roster</h1></div>
-    <div class="field"><label>Gang</label><div class="static" id="gangStatic" title="Gang type is chosen when the gang is created and cannot be changed">&mdash;</div></div>
-    <div class="field" id="pathField" style="display:none"><label for="pathSelect">Path</label><select id="pathSelect"></select></div>
-    <div class="field" id="chaosField" style="display:none"><label for="chaosSelect">Corruption</label><select id="chaosSelect"></select></div>
-    <div class="field"><label for="gangName">Gang name</label><input id="gangName" placeholder="Name your gang"></div>
-    <div class="field"><label for="budget">Credits</label><input id="budget" type="number" min="0" step="50" value="1000"></div>
-    <div class="acct" id="acct" style="display:none"></div>
-    <div class="readout">
-      <div><span class="k">Rating</span><span class="v" id="roSpent">0</span></div>
-      <div><span class="k">Left</span><span class="v" id="roLeft">1000</span></div>
-      <div><span class="k">Models</span><span class="v" id="roCount">0</span></div>
-      <div><span class="k">Hier / rest</span><span class="v" id="roBalance">0/0</span></div>
+    <div class="topbar-row topbar-top">
+      <div class="brand"><span class="eyebrow">Necromunda roster</span><h1 id="brandTitle">Underhive Roster</h1></div>
+      <div class="acct" id="acct" style="display:none"></div>
+    </div>
+    <div class="topbar-row topbar-controls">
+      <div class="field"><label>Gang</label><div class="static" id="gangStatic" title="Gang type is chosen when the gang is created and cannot be changed">&mdash;</div></div>
+      <div class="field" id="pathField" style="display:none"><label for="pathSelect">Path</label><select id="pathSelect"></select></div>
+      <div class="field" id="chaosField" style="display:none"><label for="chaosSelect">Corruption</label><select id="chaosSelect"></select></div>
+      <div class="field grow"><label for="gangName">Gang name</label><input id="gangName" placeholder="Name your gang"></div>
+      <div class="field"><label for="budget">Credits</label><input id="budget" type="number" min="0" step="50" value="1000"></div>
+      <div class="readout">
+        <div><span class="k">Rating</span><span class="v" id="roSpent">0</span></div>
+        <div><span class="k">Left</span><span class="v" id="roLeft">1000</span></div>
+        <div><span class="k">Models</span><span class="v" id="roCount">0</span></div>
+        <div><span class="k">Hier / rest</span><span class="v" id="roBalance">0/0</span></div>
+      </div>
     </div>
   </div>
 </header>
@@ -1658,6 +1670,196 @@ nomads:{
     {g:"Pets",k:"pet",n:"Arthromite Spinewyrm",c:60,note:"also a roster entry"},
     {g:"Pets",k:"pet",n:"Ashwing Helamite",c:70,note:"also a roster entry"},
     {g:"Pets",k:"pet",n:"Unbound Helamite",c:70,note:"also a roster entry"}
+  ]
+},
+
+squats:{
+  id:"squats", name:"Ironhead Squats", accent:"#5b6675", accent2:"#6d2318", defaultCredits:1000,
+  /* locks are enforced silently — no "X or Y only" captions in the drawers */
+  quietRestrictions:true,
+  skillSets:["Agility","Brawn","Combat","Cunning","Savant","Shooting"],
+  specialRules:[
+    ["Dauntless","Ironhead Squats do not need to make Nerve checks when a friendly Fighter goes Out of Action within 3\"."],
+    ["Starting Skills","When added to a Gang Roster, all Ironhead Squat Leaders and Champions may select one skill from one of their Primary Skill Sets."]
+  ],
+  composition:{requireLeader:true,maxLeaders:1},
+
+  weapons:{
+    "Ironhead autogun":W("Auto/stub",30,null,[P('8"','24"','3','-','1','Rapid Fire (1), Reliable')]),
+    "Ironhead autopistol":W("Auto/stub",20,null,[P('4"','12"','3','-','1','Light, Rapid Fire (1), Reliable')]),
+    "Ironhead heavy stubber*":W("Auto/stub",80,null,[P('20"','40"','4','-1','1','Heavy, Rapid Fire (2), Reliable')]),
+    "Ironhead stub gun":W("Auto/stub",15,null,[P('6"','12"','3','-','1','Light, Rapid Fire (1)')]),
+    "Skalvian heavy stubber":W("Auto/stub",null,null,[P('20"','40"','4','-1','1','Rapid Fire (2), Reliable')]),
+    "Svenotar autogun":W("Auto/stub",null,null,[P('8"','24"','3','-','1','Arc (Centreline), Rapid Fire (1), Reliable, Twin-linked')]),
+    "Ironhead boltgun":W("Bolt",65,null,[P('12"','24"','4','-1','2','Ammo (3+), Rapid Fire (1), Reliable')]),
+    "Ironhead bolt pistol":W("Bolt",55,null,[P('6"','12"','4','-1','2','Ammo (3+), Light, Rapid Fire (1), Reliable')]),
+    "Svenotar boltgun":W("Bolt",null,null,[P('12"','24"','4','-1','2','Ammo (3+), Arc (Centreline), Rapid Fire (1), Reliable, Twin-linked')]),
+    "Seismic crusher":W("Esoteric",null,null,[P('T','-','2','-','1','Ammo (6+), Breaching (5+), Template')]),
+    "Heavy melta":W("Exo",160,null,[P('9"','18"','8','-4','3','Ammo (6+), Damage (3), Heavy, Rapid Fire (1)')]),
+    "Ironhead combat shotgun":W("Exo",50,null,[P('8"','16"','4','-','2','Knockback (6+), Rapid Fire (1)')]),
+    "Storm welder":W("Exo",60,null,[P('8"','16"','5','-','1','Rapid Fire (3), Shock (6+), Unstable')]),
+    "Ironhead flamer":W("Flamer",80,null,[P('T','-','4','-1','1','Ammo (6+), Blaze (5+), Rapid Fire (1), Template')]),
+    "Ironhead hand flamer":W("Flamer",55,null,[P('T','-','3','-','1','Ammo (6+), Blaze (5+), Light, Rapid Fire (1), Template')]),
+    "Ironhead heavy flamer*":W("Flamer",105,null,[P('T','-','5','-2','1','Ammo (6+), Blaze (5+), Rapid Fire (1), Template')]),
+    "Skalvian flamer":W("Flamer",null,null,[P('T','-','4','-1','1','Ammo (6+), Arc (Front), Blaze (5+), Template')]),
+    "Ironhead grenade launcher":W("Grenade launcher",45,null,[
+      P('6"','12"','3','-1','1','Ammo (4+), Blast (3"), Breaching (6+), Concussive (5+), Knockback (5+)','seismic grenades')]),
+    "Ironhead inferno pistol":W("Melta",120,null,[P('4"','7"','8','-3','2','Ammo (6+), Damage (2), Light')]),
+    "Ironhead meltagun":W("Melta",150,null,[P('6"','12"','8','-4','3','Ammo (5+), Damage (3)')]),
+    "Svenotar meltagun":W("Melta",null,null,[P('6"','12"','8','-4','3','Ammo (6+), Arc (Centreline), Damage (3), Rapid Fire (1)')]),
+    "Bolt spitter":W("Power pack",45,null,[P('4"','10"','4','-1','1','Additional Attacks (1), Light, Power Pack, Rapid Fire (1)')]),
+    "Stone burner":W("Power pack",75,null,[P('2"','4"','5','-2','2','Ammo (6+), Additional Attacks (1), Damage (2), Light, Power Pack')]),
+    "Two-handed chainaxe*":W("Chain",70,null,[P('E','-','S+2','-2','2','Heavy, Melee, Shred (5+), Unwieldy')]),
+    "Excavator hammer*":W("Exo",65,null,[P('E','-','S+2','-1','3','Concussive (6+), Heavy, Melee, Unwieldy')]),
+    "Heavy drill":W("Exo",40,null,[P('E','-','S+1','-1','2','Melee, Shred (6+)')]),
+    "Hydraulic drill":W("Exo",15,null,[P('E','-','S','-1','1','Melee, Shred (6+)')]),
+    "Rock saw":W("Exo",30,null,[P('E','-','S+1','-1','1','Breaching (6+), Melee')]),
+    "Circular stone saw":W("Power pack",40,null,[P('E','-','S+1','-1','1','Additional Attacks (1), Melee, Power Pack, Shred (6+)')]),
+    "Drill":W("Power pack",25,null,[P('E','-','3','-1','1','Additional Attacks (1), Melee, Power Pack')]),
+    "Gem extractor":W("Power pack",30,null,[P('E','-','S+1','-','1','Additional Attacks (1), Melee, Power Pack')]),
+    "Ironhead arc welder":W("Power pack",80,null,[P('E','-','S+2','-2','2','Additional Attacks (1), Blaze (5+), Melee, Power Pack')]),
+    "Two-handed power axe*":W("Power",65,null,[P('E','-','S+1','-3','2','Breaching (6+), Heavy, Melee, Unwieldy')]),
+    "Two-handed power pick*":W("Power",60,null,[P('E','-','S+1','-2','2','Breaching (4+), Heavy, Melee, Unwieldy')]),
+    "Pincers":W("Repurposed tools",null,null,[P('E','-','S','-','1','Melee, Paired (2)')]),
+    "Ironhead claw":W("Vehicle",null,null,[P('E','-','S','-1','2','Additional Attacks (2), Melee, Unwieldy')]),
+    "Skalvian hull":W("Vehicle",null,null,[P('E','-','S','-2','2','Damage (2), Melee, Ram')])
+  },
+  wargear:{
+    "Exo-suit":{c:null,tp:null,t:"Exclusive. The Fighter is immune to the effects of the Rad-phage and Blaze (X) traits."},
+    "Svenotar Scout Trike":{c:80,tp:null,t:"Exclusive. Grants the Mounted Subtype and sets Movement to 8\". A Dash adds 5\" to Movement instead of Initiative. Equipped with a Svenotar autogun; when added to the gang or during any Post-cycle Sequence it may be exchanged for the boltgun (+35) or meltagun (+70) variant."},
+    "Svenotar Scout Trike with boltgun":{c:115,tp:null,t:"Exclusive. As the Svenotar Scout Trike, with the autogun replaced by a Svenotar boltgun."},
+    "Svenotar Scout Trike with meltagun":{c:150,tp:null,t:"Exclusive. As the Svenotar Scout Trike, with the autogun replaced by a Svenotar meltagun."}
+  },
+
+  fighters:[
+    {id:"charter",name:"Ironhead Squat Charter Master",cost:130,role:"Leader",type:"Fighter (Leader)",xp:61,
+     stats:{M:'4"',WS:"3+",BS:"3+",S:3,T:4,W:3,I:2,A:3,Sv:"5+",Ld:8,Cl:8,Wil:8,Int:7},
+     skills:{Brawn:"Secondary",Combat:"Secondary",Savant:"Primary",Shooting:"Primary"},
+     buys:true,startingSkill:true},
+
+    {id:"drillmaster",name:"Ironhead Squat Drill Master",cost:90,role:"Champion",type:"Fighter (Champion)",xp:37,
+     stats:{M:'4"',WS:"4+",BS:"3+",S:3,T:4,W:2,I:2,A:2,Sv:"5+",Ld:7,Cl:7,Wil:7,Int:6},
+     skills:{Brawn:"Primary",Savant:"Secondary",Shooting:"Primary"},
+     buys:true,startingSkill:true},
+
+    {id:"exomaster",name:"Ironhead Squat Exo Master",cost:105,role:"Champion",type:"Fighter (Champion)",xp:49,
+     stats:{M:'4"',WS:"3+",BS:"4+",S:3,T:4,W:2,I:2,A:2,Sv:"4+",Ld:8,Cl:7,Wil:7,Int:7},
+     skills:{Brawn:"Primary",Combat:"Primary",Savant:"Secondary"},
+     rules:[["Exo-suit","An Exo Master is equipped with an exo-suit, included in their cost. They may only choose weapons from the Exo Weapons and Power Pack sections of the Ironhead Squat Equipment List and the Trading Post."]],
+     buys:true,startingSkill:true,fixedGear:["Exo-suit"]},
+
+    {id:"drillkyn",name:"Ironhead Squat Drill-Kyn",cost:45,role:"Ganger",type:"Fighter (Ganger, Specialist)",xp:13,
+     stats:{M:'4"',WS:"4+",BS:"4+",S:3,T:4,W:1,I:2,A:1,Sv:"6+",Ld:6,Cl:7,Wil:7,Int:6},
+     skills:{Brawn:"Secondary",Combat:"Secondary",Shooting:"Primary"},
+     buys:true,specialist:true},
+
+    {id:"exokyn",name:"Ironhead Squat Exo-Kyn",cost:40,role:"Prospect",type:"Fighter (Prospect)",xp:4,
+     stats:{M:'4"',WS:"5+",BS:"5+",S:3,T:4,W:1,I:3,A:1,Sv:"5+",Ld:5,Cl:6,Wil:5,Int:5},
+     skills:{Brawn:"Primary",Combat:"Secondary"},
+     grantedSkills:["Nerves of Steel"],
+     rules:[["Exo-suit","An Exo-Kyn is equipped with an exo-suit, included in their cost. They may only choose weapons from the Power Pack and Exo Weapons sections of the Ironhead Squat Equipment List and the Trading Post."]],
+     buys:true,fixedGear:["Exo-suit"]},
+
+    {id:"digger",name:"Ironhead Squat Digger",cost:30,role:"Prospect",type:"Fighter (Prospect)",xp:1,
+     stats:{M:'5"',WS:"5+",BS:"5+",S:3,T:4,W:1,I:3,A:1,Sv:"6+",Ld:5,Cl:6,Wil:5,Int:5},
+     skills:{Brawn:"Secondary",Shooting:"Primary"},
+     buys:true},
+
+    {id:"vartijan",name:"Ironhead Squat Vartijan Exo-Driller",cost:280,role:"Brute",type:"Fighter (Brute)",xp:25,
+     stats:{M:'4"',WS:"4+",BS:"3+",S:4,T:5,W:3,I:3,A:2,Sv:"4+",Ld:7,Cl:7,Wil:6,Int:6},
+     skills:{Brawn:"Primary",Combat:"Primary",Shooting:"Secondary"},
+     grantedSkills:["Bulging Biceps"],
+     rules:[["Sensor Suite","A Vartijan Exo-Driller treats the Visibility (X\") rule as being 3\" higher than it is."]],
+     buys:false,fixedGear:["Power fist","Ironhead heavy flamer*","Seismic crusher"],
+     options:[{id:"vart-bolter",label:"Replace the heavy flamer with a heavy bolter",cost:10,
+               removes:"Ironhead heavy flamer*",adds:"Heavy bolter*"}]},
+
+    {id:"exovator",name:"Techmite Exovator",cost:45,role:"Pet",type:"Fighter (Beast, Pet)",xp:13,
+     stats:{M:'4"',WS:"4+",BS:"4+",S:2,T:3,W:1,I:3,A:1,Sv:"6+",Ld:6,Cl:7,Wil:6,Int:5},
+     skills:{Cunning:"Secondary",Shooting:"Primary"},
+     rules:[["Leash Range",'3" Leash range.'],
+            ["Bi-arm","A Techmite Exovator may be equipped with a maximum of two weapons, chosen from the Power Pack section of the Ironhead Squat Equipment List and the Trading Post."]],
+     buys:true,slotLimit:2},
+
+    {id:"oculi",name:"Techmite Oculi",cost:50,role:"Pet",type:"Fighter (Beast, Flying, Pet)",xp:13,
+     stats:{M:'7"',WS:"5+",BS:"5+",S:2,T:3,W:1,I:3,A:1,Sv:"6+",Ld:6,Cl:7,Wil:6,Int:5},
+     skills:{Agility:"Secondary",Cunning:"Primary"},
+     rules:[["Leash Range",'12" Leash range.'],
+            ["Target Paint","While at least one Techmite Oculi is within 6\" of an enemy Fighter, its owner counts as firing at short range for the purposes of calculating cover bonuses."]],
+     buys:false,fixedGear:["Pincers"]},
+
+    {id:"skalvian",name:"Ironhead Squat Skalvian Explorator",cost:560,role:"Vehicle",type:"Vehicle (Tracked)",xp:13,
+     stats:{M:'6"',WS:"5+",BS:"4+",S:7,T:8,W:5,I:3,A:3,Sv:"3+",Ld:7,Cl:7,Wil:7,Int:7},
+     skills:{Brawn:"Primary",Shooting:"Secondary"},
+     buys:false,fixedGear:["Skalvian flamer","Skalvian heavy stubber","Ironhead claw","Skalvian hull"]}
+  ],
+
+  equipment:[
+    {g:"Ranged",k:"weapon",n:"Ironhead autogun",c:30,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead autopistol",c:20,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead heavy stubber*",c:80,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead stub gun",c:15,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead boltgun",c:65,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead bolt pistol",c:55,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead flamer",c:80,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead hand flamer",c:55,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead heavy flamer*",c:105,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead grenade launcher with seismic grenades",c:45,w:"Ironhead grenade launcher",only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead inferno pistol",c:120,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Ironhead meltagun",c:150,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Ranged",k:"weapon",n:"Mining laser*",c:125,only:["charter","drillmaster","drillkyn","digger"]},
+
+    {g:"Exo weapons",k:"weapon",n:"Heavy melta",c:160,only:["exomaster","exokyn"]},
+    {g:"Exo weapons",k:"weapon",n:"Ironhead combat shotgun",c:50,only:["exomaster","exokyn"]},
+    {g:"Exo weapons",k:"weapon",n:"Storm welder",c:60,only:["exomaster","exokyn"]},
+    {g:"Exo weapons",k:"weapon",n:"Excavator hammer*",c:65,only:["exomaster","exokyn"]},
+    {g:"Exo weapons",k:"weapon",n:"Heavy drill",c:40,only:["exomaster","exokyn"]},
+    {g:"Exo weapons",k:"weapon",n:"Hydraulic drill",c:15,only:["exomaster","exokyn"]},
+    {g:"Exo weapons",k:"weapon",n:"Rock saw",c:30,only:["exomaster","exokyn"]},
+
+    {g:"Power pack",k:"weapon",n:"Bolt spitter",c:45},
+    {g:"Power pack",k:"weapon",n:"Stone burner",c:75},
+    {g:"Power pack",k:"weapon",n:"Circular stone saw",c:40},
+    {g:"Power pack",k:"weapon",n:"Drill",c:25},
+    {g:"Power pack",k:"weapon",n:"Gem extractor",c:30},
+    {g:"Power pack",k:"weapon",n:"Ironhead arc welder",c:80},
+
+    {g:"Close combat",k:"weapon",n:"Two-handed chainaxe*",c:70,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Close combat",k:"weapon",n:"Axe",c:15,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Close combat",k:"weapon",n:"Fighting knife",c:5,only:["charter","drillmaster","drillkyn","digger"]},
+
+    {g:"Power weapons",k:"weapon",n:"Power fist",c:105,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Power weapons",k:"weapon",n:"Power hammer",c:40,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Power weapons",k:"weapon",n:"Two-handed power axe*",c:65,only:["charter","drillmaster","drillkyn","digger"]},
+    {g:"Power weapons",k:"weapon",n:"Two-handed power pick*",c:60,only:["charter","drillmaster","drillkyn","digger"]},
+
+    {g:"Grenades",k:"grenade",n:"Blasting charges",c:60,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Grenades",k:"grenade",n:"Frag grenades",c:30,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Grenades",k:"grenade",n:"Krak grenades",c:45,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Grenades",k:"grenade",n:"Smoke grenades",c:15,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+
+    {g:"Armour & field armour",k:"armour",n:"Carapace armour, light",c:100,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Armour & field armour",k:"armour",n:"Mesh armour",c:40,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Armour & field armour",k:"field",n:"Refractor field",c:50,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+
+    {g:"Personal equipment",k:"wargear",n:"Bio-booster",c:25,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Personal equipment",k:"wargear",n:"Drop rig",c:10,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Personal equipment",k:"wargear",n:"Grav chute",c:30,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Personal equipment",k:"wargear",n:"Medicae kit",c:20,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Personal equipment",k:"wargear",n:"Photo-goggles",c:35,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Personal equipment",k:"wargear",n:"Photo-lumens",c:15,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Personal equipment",k:"wargear",n:"Respirator",c:15,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+
+    {g:"Weapon accessories",k:"accessory",n:"Infra-sight",c:10,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Weapon accessories",k:"accessory",n:"Mono-sight",c:20,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+
+    {g:"Mounts",k:"wargear",n:"Dirt bike",c:35,only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Mounts",k:"wargear",n:"Svenotar Scout Trike",c:80,w:"Svenotar autogun",only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Mounts",k:"wargear",n:"Svenotar Scout Trike with boltgun",c:115,w:"Svenotar boltgun",only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+    {g:"Mounts",k:"wargear",n:"Svenotar Scout Trike with meltagun",c:150,w:"Svenotar meltagun",only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
+
+    {g:"Pets",k:"pet",n:"Techmite Exovator",c:45,note:"also a roster entry"},
+    {g:"Pets",k:"pet",n:"Techmite Oculi",c:50,note:"also a roster entry"}
   ]
 },
 
@@ -3918,7 +4120,7 @@ const VENATOR_LEGACIES=[
   {id:"orlock",  name:"House Orlock",   src:"orlock",  who:"house"},
   {id:"vansaar", name:"House Van Saar", src:"vansaar", who:"house"},
   {id:"ogryn",   name:"Ogryn",          src:"ogryns",  who:"ogryn"},
-  {id:"squat",   name:"Ironhead Squat", src:null,      who:"squat"}
+  {id:"squat",   name:"Ironhead Squat", src:"squats",  who:"squat"}
 ];
 function legacyById(id){ return VENATOR_LEGACIES.find(L=>L.id===id)||null; }
 function legaciesFor(t){
@@ -4322,6 +4524,19 @@ const PORTRAITS={
     "unbound":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-unbound-helamite.png",
     "ashwing":"images/portraits/ash-waste-nomads/portrait-ash-waste-nomads-ashwing-helamite.png"
   },
+  /* Ironhead Squats */
+  squats:{
+    "charter":"images/portraits/ironhead-squats/portrait-ironhead-squats-charter-master.png",
+    "drillmaster":"images/portraits/ironhead-squats/portrait-ironhead-squats-drill-master.png",
+    "exomaster":"images/portraits/ironhead-squats/portrait-ironhead-squats-exo-master.png",
+    "drillkyn":"images/portraits/ironhead-squats/portrait-ironhead-squats-drill-kyn.png",
+    "exokyn":"images/portraits/ironhead-squats/portrait-ironhead-squats-exo-kyn.png",
+    "digger":"images/portraits/ironhead-squats/portrait-ironhead-squats-digger.png",
+    "vartijan":"images/portraits/ironhead-squats/portrait-ironhead-squats-vartijan-exo-driller.png",
+    "exovator":"images/portraits/ironhead-squats/portrait-ironhead-squats-techmite-exovator.png",
+    "oculi":"images/portraits/ironhead-squats/portrait-ironhead-squats-techmite-oculi.png",
+    "skalvian":"images/portraits/ironhead-squats/portrait-ironhead-squats-skalvian-explorator.png"
+  },
   /* Chaos Helot Cult */
   helots:{
     "demagogue":"images/portraits/chaos-helot-cult/portrait-chaos-helot-cult-demagogue.png",
@@ -4334,53 +4549,53 @@ const PORTRAITS={
   },
   /* Corpse Grinder Cult */
   grinders:{
-    "butcher":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-butcher.png",
-    "cutter":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-cutter.png",
-    "skinner":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-skinner.png",
-    "initiate":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-initiate.png",
-    "spawn":"images/portraits/corpse-grinder-cult/portrait-corpse-grinder-cult-chaos-spawn.png"
+    "butcher":"images/portraits/corpse-grinder-cult/corpse-grinder-cult-butcher.png",
+    "cutter":"images/portraits/corpse-grinder-cult/corpse-grinder-cult-cutter.png",
+    "skinner":"images/portraits/corpse-grinder-cult/corpse-grinder-cult-skinner.png",
+    "initiate":"images/portraits/corpse-grinder-cult/corpse-grinder-cult-initiate.png",
+    "spawn":"images/portraits/corpse-grinder-cult/corpse-grinder-cult-sawn.png"
   },
   /* Free Ogryns */
   ogryns:{
-    "overboss":"images/portraits/free-ogryns/portrait-free-ogryns-ogryn-overboss.png",
-    "underboss":"images/portraits/free-ogryns/portrait-free-ogryns-ogryn-underboss.png",
-    "stevedore":"images/portraits/free-ogryns/portrait-free-ogryns-stevedore-ogryn.png",
-    "lobo":"images/portraits/free-ogryns/portrait-free-ogryns-lobo-ogryn.png"
+    "overboss":"images/portraits/ogryns/portrait-ogryn-overboss.png",
+    "underboss":"images/portraits/ogryns/portrait-ogryn-underboss.png",
+    "stevedore":"images/portraits/ogryns/portrait-ogryn-stevedore.png",
+    "lobo":"images/portraits/ogryns/portrait-ogryn-lobo-ogryn.png"
   },
   /* Genestealer Cults */
   gsc:{
-    "adept":"images/portraits/genestealer-cults/portrait-genestealer-cults-adept.png",
-    "alpha":"images/portraits/genestealer-cults/portrait-genestealer-cults-alpha.png",
-    "acolyte":"images/portraits/genestealer-cults/portrait-genestealer-cults-hybrid-acolyte.png",
-    "neophyte":"images/portraits/genestealer-cults/portrait-genestealer-cults-neophyte-hybrid.png",
-    "aberrant":"images/portraits/genestealer-cults/portrait-genestealer-cults-aberrant.png",
-    "initiate":"images/portraits/genestealer-cults/portrait-genestealer-cults-hybrid-initiate.png",
-    "abominant":"images/portraits/genestealer-cults/portrait-genestealer-cults-abominant.png",
-    "familiar":"images/portraits/genestealer-cults/portrait-genestealer-cults-psychic-familiar.png"
+    "adept":"images/portraits/genestealer-cult/portrait-genestealer-cult-adept.png",
+    "alpha":"images/portraits/genestealer-cult/portrait-genestealer-cult-alpha.png",
+    "acolyte":"images/portraits/genestealer-cult/portrait-genestealer-hybrid-acolyte.png",
+    "neophyte":"images/portraits/genestealer-cult/portrait-genestealer-neophyte-hybrid.png",
+    "aberrant":"images/portraits/genestealer-cult/portrait-genestealer-cult-abberant.png",
+    "initiate":"images/portraits/genestealer-cult/portrait-genestealer-hybrid-initiate.png",
+    "abominant":"images/portraits/genestealer-cult/portrait-genestealer-cult-abominant.png",
+    "familiar":"images/portraits/genestealer-cult/portrait-genestealer-cult-familiar.png"
   },
   /* House Cawdor */
   cawdor:{
     "wordkeeper":"images/portraits/cawdor/portrait-cawdor-word-keeper.png",
     "firebrand":"images/portraits/cawdor/portrait-cawdor-firebrand.png",
-    "brethren":"images/portraits/cawdor/portrait-cawdor-brethren.png",
-    "waybrethren":"images/portraits/cawdor/portrait-cawdor-way-brethren.png",
+    "brethren":"images/portraits/cawdor/portrait-cawdor-cawdor-breathen.png",
+    "waybrethren":"images/portraits/cawdor/portrait-cawdor-way-breathen.png",
     "bonepicker":"images/portraits/cawdor/portrait-cawdor-bonepicker.png",
-    "stigshambler":"images/portraits/cawdor/portrait-cawdor-stig-shambler.png",
-    "priest":"images/portraits/cawdor/portrait-cawdor-redemptionist-priest.png",
-    "deacon":"images/portraits/cawdor/portrait-cawdor-redemptionist-deacon.png",
-    "redbrethren":"images/portraits/cawdor/portrait-cawdor-redemptionist-brethren.png",
-    "zealot":"images/portraits/cawdor/portrait-cawdor-redemptionist-zealot.png",
+    "stigshambler":"images/portraits/cawdor/portrait-cawdor-stig-chambler.png",
+    "priest":"images/portraits/cawdor/portrait-cawdor-priest.png",
+    "deacon":"images/portraits/cawdor/portrait-cawdor-deacon.png",
+    "redbrethren":"images/portraits/cawdor/portrait-cawdor-redemptionist-breathen.png",
+    "zealot":"images/portraits/cawdor/portrait-cawdor-zealot.png",
     "sheenbird":"images/portraits/cawdor/portrait-cawdor-sheen-bird.png"
   },
   /* House Delaque */
   delaque:{
     "master":"images/portraits/delaque/portrait-delaque-master-of-shadow.png",
     "phantom":"images/portraits/delaque/portrait-delaque-phantom.png",
-    "nachtghul":"images/portraits/delaque/portrait-delaque-nacht-ghul.png",
+    "nachtghul":"images/portraits/delaque/portrait-delaque-nacht-ghoul.png",
     "ghost":"images/portraits/delaque/portrait-delaque-ghost.png",
     "psygheist":"images/portraits/delaque/portrait-delaque-psy-gheist.png",
     "shadow":"images/portraits/delaque/portrait-delaque-shadow.png",
-    "piscean":"images/portraits/delaque/portrait-delaque-piscean-spektor.png",
+    "piscean":"images/portraits/delaque/portrait-delaque-piscean-spector.png",
     "cephalopod":"images/portraits/delaque/portrait-delaque-cephalopod-spektor.png",
     "wyrm":"images/portraits/delaque/portrait-delaque-psychoteric-wyrm.png"
   },
@@ -4410,7 +4625,7 @@ const PORTRAITS={
   /* House Orlock */
   orlock:{
     "roadcaptain":"images/portraits/orlock/portrait-orlock-road-captain.png",
-    "roadsergeant":"images/portraits/orlock/portrait-orlock-road-sergeant.png",
+    "roadsergeant":"images/portraits/orlock/portrait-orlock-road-sargeant.png",
     "armsmaster":"images/portraits/orlock/portrait-orlock-arms-master.png",
     "gunner":"images/portraits/orlock/portrait-orlock-gunner.png",
     "wrecker":"images/portraits/orlock/portrait-orlock-wrecker.png",
@@ -4421,12 +4636,12 @@ const PORTRAITS={
   vansaar:{
     "prime":"images/portraits/van-saar/portrait-van-saar-prime.png",
     "augmek":"images/portraits/van-saar/portrait-van-saar-augmek.png",
-    "archeotek":"images/portraits/van-saar/portrait-van-saar-archeotek.png",
+    "archeotek":"images/portraits/van-saar/portrait-van-saar-archeoteks.png",
     "tek":"images/portraits/van-saar/portrait-van-saar-tek.png",
     "neotek":"images/portraits/van-saar/portrait-van-saar-neotek.png",
     "subtek":"images/portraits/van-saar/portrait-van-saar-subtek.png",
-    "arachnirig":"images/portraits/van-saar/portrait-van-saar-ash-wastes-arachni-rig.png",
-    "cyberachnid":"images/portraits/van-saar/portrait-van-saar-cyberachnid.png"
+    "arachnirig":"images/portraits/van-saar/portrait-van-saar-arachni-rig.png",
+    "cyberachnid":"images/portraits/van-saar/portrait-van-saar-cyberachnids.png"
   },
   /* Outcasts */
   outcasts:{
@@ -4436,15 +4651,15 @@ const PORTRAITS={
   },
   /* Palanite Enforcers */
   enforcers:{
-    "captain":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-captain.png",
-    "sergeant":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-sergeant.png",
-    "subsergeant":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-subjugator-sergeant.png",
-    "patrol":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-patrol-officer.png",
-    "subpatrol":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-subjugator-patrol-officer.png",
-    "rookie":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-rookie.png",
-    "haunt":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-haunt.png",
-    "automata":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-sanctioner-pattern-automata.png",
-    "tauros":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-enforcer-tauros-venator.png",
+    "captain":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-captain.png",
+    "sergeant":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-sargeant.png",
+    "subsergeant":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-subjugator-sargeant.png",
+    "patrol":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-patrol-officer.png",
+    "subpatrol":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-subjugator-patrol-officer.png",
+    "rookie":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-rookie.png",
+    "haunt":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-haunt.png",
+    "automata":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-sanctioner-pattern-automata.png",
+    "tauros":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-tauros-venator.png",
     "mastiff":"images/portraits/palanite-enforcers/portrait-palanite-enforcers-hardcase-cyber-mastiff.png"
   },
   /* Spyre Hunting Party */
@@ -4466,21 +4681,21 @@ const PORTRAITS={
   },
   /* Venators */
   venators:{
-    "house-leader":"images/portraits/venators/portrait-venators-house-hunt-leader.png",
-    "ogryn-leader":"images/portraits/venators/portrait-venators-ogryn-hunt-leader.png",
-    "squat-leader":"images/portraits/venators/portrait-venators-squat-hunt-leader.png",
-    "ratling-leader":"images/portraits/venators/portrait-venators-ratling-hunt-leader.png",
-    "beastman-leader":"images/portraits/venators/portrait-venators-beastman-hunt-leader.png",
-    "house-champion":"images/portraits/venators/portrait-venators-house-hunt-champion.png",
-    "ogryn-champion":"images/portraits/venators/portrait-venators-ogryn-hunt-champion.png",
-    "squat-champion":"images/portraits/venators/portrait-venators-squat-hunt-champion.png",
-    "ratling-champion":"images/portraits/venators/portrait-venators-ratling-hunt-champion.png",
-    "beastman-champion":"images/portraits/venators/portrait-venators-beastman-hunt-champion.png",
-    "house-hunter":"images/portraits/venators/portrait-venators-house-hunter.png",
+    "house-leader":"images/portraits/venators/portrait-venators-hunt-leader.png",
+    "ogryn-leader":"images/portraits/venators/portrait-venators-ogryn-leader.png",
+    "squat-leader":"images/portraits/venators/portrait-venators-squat-leader.png",
+    "ratling-leader":"images/portraits/venators/portrait-venators-ratling-leader.png",
+    "beastman-leader":"images/portraits/venators/portrait-venators-beastmen-leader.png",
+    "house-champion":"images/portraits/venators/portrait-venators-hunt-champion.png",
+    "ogryn-champion":"images/portraits/venators/portrait-venators-ogryn-champion.png",
+    "squat-champion":"images/portraits/venators/portrait-venators-squat-champion.png",
+    "ratling-champion":"images/portraits/venators/portrait-venators-ratling-champion.png",
+    "beastman-champion":"images/portraits/venators/portrait-venators-beastmen-champion.png",
+    "house-hunter":"images/portraits/venators/portrait-venators-hunter.png",
     "ogryn-hunter":"images/portraits/venators/portrait-venators-ogryn-hunter.png",
     "squat-hunter":"images/portraits/venators/portrait-venators-squat-hunter.png",
     "ratling-hunter":"images/portraits/venators/portrait-venators-ratling-hunter.png",
-    "beastman-hunter":"images/portraits/venators/portrait-venators-beastman-hunter.png"
+    "beastman-hunter":"images/portraits/venators/portrait-venators-beastmen-hunter.png"
   }
 };
 
@@ -4869,9 +5084,10 @@ function gearRow(e,f,t,avail){
               &&!(e.k==="weapon"&&t.weaponGroups&&t.weaponGroups.indexOf(e.g)===-1&&!avail.some(x=>x.n===e.n&&x.k==="weapon"&&t.weaponGroups.indexOf(x.g)>-1));
   const locked=!allowed||(e.needs&&f.gear.indexOf(e.needs)===-1);
   const q=qtyOf(f,e.n), max=maxQty(e);
+  const quiet=gang()&&gang().quietRestrictions;
   let why=(t.petsOnly&&e.k!=="pet")?"this fighter may only buy Pets"
-       :e.only?`${e.only.map(id=>{const x=ftype(id); return x?x.name:id;}).join(" or ")}${e.spec?" or "+e.spec+" Specialists":""} only`
-       :(e.spec?`${e.spec} Specialists only`
+       :(e.only&&!quiet)?`${e.only.map(id=>{const x=ftype(id); return x?x.name:id;}).join(" or ")}${e.spec?" or "+e.spec+" Specialists":""} only`
+       :((e.spec&&!quiet)?`${e.spec} Specialists only`
        :(e.k==="weapon"&&t.weaponGroups&&t.weaponGroups.indexOf(e.g)===-1
           ?`${t.weaponGroups.join(" and ")} weapons only`
        :(e.sub&&t.noSubjugator?"Subjugator section, not for this fighter"
@@ -5071,7 +5287,7 @@ function hasExtraArm(f,t){
   if(t&&t.extraArm) return true;
   return (t&&t.options||[]).some(o=>o.extraArm&&(f.options||[]).indexOf(o.id)>-1);
 }
-function slotLimitFor(f,t){ return SLOT_LIMIT+(hasExtraArm(f,t)?1:0); }
+function slotLimitFor(f,t){ return ((t&&t.slotLimit)||SLOT_LIMIT)+(hasExtraArm(f,t)?1:0); }
 function tpRating(n,list){
   const it=item(n,list);
   if(it&&it.tpr!=null) return it.tpr;
@@ -6045,9 +6261,20 @@ function setupSyncGang(){
   if(g.paths) bits.push((g.pathLabel||"Path")+" chosen on the roster");
   document.getElementById("setupBlurb").textContent=bits.join(" · ");
 }
+/* Gang list order follows the new edition's two gang books: the core-set pair
+   first, the remaining Houses, the rest of Gangs of the Underhive, then
+   Gangs of the Outlands in its published order. */
+const GANG_ORDER=["escher","goliath","cawdor","delaque","orlock","vansaar",
+  "enforcers","grinders","venators",
+  "outcasts","ogryns","gsc","helots","malstrain","spyres","squats","nomads"];
 function openSetup(){
   const sel=document.getElementById("setupGang");
-  sel.innerHTML=Object.values(GANGS).map(g=>`<option value="${g.id}">${g.name}</option>`).join("");
+  sel.innerHTML=Object.values(GANGS)
+    .slice().sort((a,b)=>{
+      const ia=GANG_ORDER.indexOf(a.id), ib=GANG_ORDER.indexOf(b.id);
+      return (ia<0?99:ia)-(ib<0?99:ib);
+    })
+    .map(g=>`<option value="${g.id}">${g.name}</option>`).join("");
   sel.value=(state&&state.gangId)||"escher";
   document.getElementById("setupCorrupt").innerHTML=corruptOptionsHTML();
   document.getElementById("setupCorrupt").value="";
