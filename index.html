@@ -301,6 +301,15 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .sf-val .sf{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
 .sf-b{margin-left:14px}                /* subtle extra room before Sv */
 .sf-line{width:1px;flex:none;align-self:stretch;background:var(--hairline)}
+/* tiny advancement / injury arrows on the open card's stat line and XP */
+.statfold.editable .sf{width:40px;display:inline-flex;align-items:center;justify-content:center}
+.adj{display:inline-flex;flex-direction:column;vertical-align:middle;margin-left:3px;gap:1px}
+.adjb{background:none;border:none;padding:0;width:14px;height:11px;line-height:9px;
+  font-size:11px;color:var(--maroon);opacity:.6;cursor:pointer}
+.adjb:hover{opacity:1}
+.adj-xp{margin-left:3px}
+.sf.mod,.speclist .mod{color:var(--maroon);font-weight:700}
+@media print{.adj{display:none !important}}
 .card.folded .wtable{margin:7px 0 0}
 .card.folded .foldlist{
   margin:7px 0 0;font-size:12px;line-height:1.4;
@@ -512,6 +521,20 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .tool:hover{background:var(--maroon);color:#fff;border-color:var(--maroon)}
 .tool.danger:hover{background:var(--bad);border-color:var(--bad);color:#fff}
 
+/* ---------- linked pet cards ----------
+   A pet bought as equipment renders indented under its owner, tied back with
+   an elbow connector drawn in the pet card's own edge colour. */
+.card.petcard{margin-left:42px;margin-top:-6px}
+.card.petcard::after{
+  content:"";position:absolute;left:-26px;top:-10px;width:20px;height:calc(50% + 10px);
+  border-left:2px solid var(--fcol-edge,#9c9384);border-bottom:2px solid var(--fcol-edge,#9c9384);
+  pointer-events:none}
+/* with several pets on one owner, the rail continues from each pet's elbow
+   down to the next pet so the chain reads as one unbroken line */
+.card.petcard:has(+ .card.petcard)::before{
+  content:"";position:absolute;left:-26px;top:50%;bottom:-10px;width:0;
+  border-left:2px solid var(--fcol-edge,#9c9384);pointer-events:none}
+
 /* ---------- gang summary strip under the roster ---------- */
 .gang-summary .panel-body{display:flex;flex-wrap:wrap;gap:6px}
 .sumcell{border:1px solid #b6ac9b;background:#f2efe9;padding:5px 14px;text-align:center;min-width:84px}
@@ -586,8 +609,13 @@ details.notes p{margin:8px 0}
   .sf-b{margin-left:6px}
   .sf-head .sf{font-size:8.5px;letter-spacing:.03em}
   .sf-val .sf{font-size:11px}
+  .adjb{width:11px;height:9px;font-size:9px;line-height:8px}
+  .adj{margin-left:1px}
   .wtable{font-size:11px}
   .sumcell{flex:1 1 90px;min-width:0;padding:4px 8px}
+  .card.petcard{margin-left:26px}
+  .card.petcard::after{left:-17px;width:12px}
+  .card.petcard:has(+ .card.petcard)::before{left:-17px}
   .setup{padding:10px}
   .setup-body{padding:12px 12px 14px}
   .toast{left:10px;right:10px;text-align:center}
@@ -1157,7 +1185,7 @@ const CREATION = {
 "Budget":{c:null,tp:null,t:"1,000 credits by default and it may not be exceeded at gang creation. In campaign play unspent credits go to the gang's Stash. In skirmish play they are simply lost."},
 "Leader":{c:null,tp:null,t:"There must be one model with the Leader Subtype."},
 "Hierarchy balance":{c:null,tp:null,t:"Models with the Champion, Brute or Hanger-on Subtype must be equal to or fewer than the models without those Subtypes. This tool counts the Leader with that group as well. An imbalance during a campaign is corrected in a Post-cycle Sequence by retiring those models or recruiting others."},
-"Pets":{c:null,tp:null,t:"Pets count as wargear, so they are ignored on both sides of the Champion, Brute and Hanger-on comparison. They are still worth listing on the roster to track XP, injuries and recovery."},
+"Pets":{c:null,tp:null,t:"Pets count as wargear, so they are ignored on both sides of the Champion, Brute and Hanger-on comparison. Buying a pet adds a linked entry below its owner on the roster to track XP, injuries and recovery."},
 "Weapons":{c:null,tp:null,t:"A fighter may carry up to three weapons bought from their own entry. A weapon marked * fills two of those slots. Grenades count as wargear, not weapons, so they never use a slot."},
 "Weapon accessories":{c:null,tp:null,t:"Each weapon may have at most one weapon accessory attached."},
 "Wargear":{c:null,tp:null,t:"Any model may purchase wargear listed in the relevant Equipment List."},
@@ -1449,8 +1477,8 @@ escher:{
     {g:"Mounts",k:"option",n:"Cutter: swap grenade launchers for heavy stubbers",as:"Cutter heavy stubbers",c:10,needs:"Escher Cutter",w:"Cutter heavy stubbers"},
     {g:"Mounts",k:"option",n:"Cutter: swap grenade launchers for plasma guns",as:"Cutter plasma guns",c:15,needs:"Escher Cutter",w:"Cutter plasma guns"},
 
-    {g:"Pets",k:"pet",n:"Phyrr Cat",c:80,note:"also a roster entry"},
-    {g:"Pets",k:"pet",n:"Phelynx",c:60,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Phyrr Cat",c:80,note:"added to the roster automatically"},
+    {g:"Pets",k:"pet",n:"Phelynx",c:60,note:"added to the roster automatically"}
   ]
 },
 
@@ -1587,8 +1615,8 @@ delaque:{
 
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
 
-    {g:"Pets",k:"pet",n:"Cephalopod Spektor",c:75,note:"also a roster entry"},
-    {g:"Pets",k:"pet",n:"Psychoteric Wyrm",c:50,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Cephalopod Spektor",c:75,note:"added to the roster automatically"},
+    {g:"Pets",k:"pet",n:"Psychoteric Wyrm",c:50,note:"added to the roster automatically"}
   ]
 },
 
@@ -1739,9 +1767,9 @@ nomads:{
 
     {g:"Mounts",k:"wargear",n:"Dustback Helamite",c:55},
 
-    {g:"Pets",k:"pet",n:"Arthromite Spinewyrm",c:60,note:"also a roster entry"},
-    {g:"Pets",k:"pet",n:"Ashwing Helamite",c:70,note:"also a roster entry"},
-    {g:"Pets",k:"pet",n:"Unbound Helamite",c:70,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Arthromite Spinewyrm",c:60,note:"added to the roster automatically"},
+    {g:"Pets",k:"pet",n:"Ashwing Helamite",c:70,note:"added to the roster automatically"},
+    {g:"Pets",k:"pet",n:"Unbound Helamite",c:70,note:"added to the roster automatically"}
   ]
 },
 
@@ -1930,8 +1958,8 @@ squats:{
     {g:"Mounts",k:"wargear",n:"Svenotar Scout Trike with boltgun",c:115,w:"Svenotar boltgun",only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
     {g:"Mounts",k:"wargear",n:"Svenotar Scout Trike with meltagun",c:150,w:"Svenotar meltagun",only:["charter","drillmaster","exomaster","drillkyn","exokyn","digger"]},
 
-    {g:"Pets",k:"pet",n:"Techmite Exovator",c:45,note:"also a roster entry"},
-    {g:"Pets",k:"pet",n:"Techmite Oculi",c:50,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Techmite Exovator",c:45,note:"added to the roster automatically"},
+    {g:"Pets",k:"pet",n:"Techmite Oculi",c:50,note:"added to the roster automatically"}
   ]
 },
 
@@ -2121,7 +2149,7 @@ cawdor:{
     {g:"Mounts",list:"cawdor",k:"wargear",n:"Dirt bike",c:35},
     {g:"Mounts",list:"cawdor",k:"wargear",n:"Ridge Walker",c:40},
 
-    {g:"Pets",list:"cawdor",k:"pet",n:"Sheen Bird",c:75,note:"also a roster entry"},
+    {g:"Pets",list:"cawdor",k:"pet",n:"Sheen Bird",c:75,note:"added to the roster automatically"},
 
     /* ---- Redemptionist list ---- */
     {g:"Ranged",list:"redemptionist",k:"weapon",n:"Autogun",c:20},
@@ -2234,9 +2262,9 @@ helots:{
      buys:true},
 
     {id:"spawn",name:"Chaos Spawn",cost:130,role:"Brute",type:"Fighter (Beast, Brute)",xp:25,
-     stats:{M:'3+D3"',WS:"*",BS:"6+",S:"*",T:"*",W:"*",I:"*",A:"*",Sv:"*",Ld:4,Cl:8,Wil:7,Int:5},
+     stats:{M:'3+D3"',WS:"4+",BS:"6+",S:4,T:5,W:2,I:3,A:2,Sv:"5+",Ld:4,Cl:8,Wil:7,Int:5},
      skills:{Agility:"Secondary",Brawn:"Primary",Cunning:"Secondary"},
-     rules:[["Warped Monstrosity","Roll a D6 for each starred characteristic when added to the roster. On a 1: WS 5+, S3, T4, W1, I2, A1, Sv 6+. On a 2-5: WS 4+, S4, T5, W2, I3, A2, Sv 5+. On a 6: WS 3+, S5, T6, W3, I4, A3, Sv 4+."],
+     rules:[["Warped Monstrosity","Roll a D6 for each starred characteristic when added to the roster. On a 1: WS 5+, S3, T4, W1, I2, A1, Sv 6+. On a 2-5: WS 4+, S4, T5, W2, I3, A2, Sv 5+. On a 6: WS 3+, S5, T6, W3, I4, A3, Sv 4+. The profile below shows the 2-5 result; use the stat arrows to match your roll."],
             ["Random Movement","Movement is random and is rolled each time the Chaos Spawn is activated."],
             ["Blessed by the Chaos Gods","Never rolls on the Lasting Injury table when taken Out of Action. They are always considered Out Cold."],
             ["Out of Control","In the Wrap-up step, if the Spawn fought in the battle, nominate up to three Fighters from the gang who did not go Out of Action and roll a D6 each. One 4+ restrains it; otherwise it escapes and goes into Recovery while the gang retrieves it. Any Fighter rolling a 1 is lashed out at, rolling immediately on the Lasting Injury table."]],
@@ -2300,7 +2328,7 @@ helots:{
 
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
 
-    {g:"Pets",k:"pet",n:"Chaos Familiar",c:135,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Chaos Familiar",c:135,note:"added to the roster automatically"}
   ]
 },
 
@@ -2485,7 +2513,7 @@ enforcers:{
 
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
 
-    {g:"Pets",k:"pet",n:"Hardcase Cyber-Mastiff",c:75,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Hardcase Cyber-Mastiff",c:75,note:"added to the roster automatically"}
   ]
 },
 
@@ -2541,9 +2569,9 @@ grinders:{
      buys:true},
 
     {id:"spawn",name:"Chaos Spawn",cost:130,role:"Brute",type:"Fighter (Beast, Brute)",xp:25,
-     stats:{M:'3+D3"',WS:"*",BS:"6+",S:"*",T:"*",W:"*",I:"*",A:"*",Sv:"*",Ld:4,Cl:8,Wil:7,Int:5},
+     stats:{M:'3+D3"',WS:"4+",BS:"6+",S:4,T:5,W:2,I:3,A:2,Sv:"5+",Ld:4,Cl:8,Wil:7,Int:5},
      skills:{Agility:"Secondary",Brawn:"Primary",Cunning:"Secondary"},
-     rules:[["Warped Monstrosity","Roll a D6 for each starred characteristic when added to the roster. On a 1: WS 5+, S3, T4, W1, I2, A1, Sv 6+. On a 2-5: WS 4+, S4, T5, W2, I3, A2, Sv 5+. On a 6: WS 3+, S5, T6, W3, I4, A3, Sv 4+."],
+     rules:[["Warped Monstrosity","Roll a D6 for each starred characteristic when added to the roster. On a 1: WS 5+, S3, T4, W1, I2, A1, Sv 6+. On a 2-5: WS 4+, S4, T5, W2, I3, A2, Sv 5+. On a 6: WS 3+, S5, T6, W3, I4, A3, Sv 4+. The profile below shows the 2-5 result; use the stat arrows to match your roll."],
             ["Erratic Movement","Movement is random and is rolled each time the Chaos Spawn is activated."],
             ["Blessed by the Lord of Skin and Sinew","Never rolls on the Lasting Injury table when taken Out of Action. They are always considered Out Cold."],
             ["Out of Control","In the Wrap-up step, if the Spawn fought in the battle, nominate up to three Fighters from the gang who did not go Out of Action and roll a D6 each. One 4+ restrains it; otherwise it escapes and goes into Recovery while the gang retrieves it. Any Fighter rolling a 1 is lashed out at, rolling immediately on the Lasting Injury table."]],
@@ -2733,7 +2761,7 @@ vansaar:{
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
     {g:"Mounts",k:"wargear",n:"Grav Cutter",c:45},
 
-    {g:"Pets",k:"pet",n:"Cyberachnid",c:90,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Cyberachnid",c:90,note:"added to the roster automatically"}
   ]
 },
 
@@ -2847,7 +2875,7 @@ orlock:{
     {g:"Mounts",k:"wargear",n:"Outrider Quad",c:100},
     {g:"Mounts",k:"option",n:"Outrider Quad: swap the harpoon launcher for a heavy bolter",as:"Outrider heavy bolter",c:30,needs:"Outrider Quad",w:"Outrider heavy bolter"},
 
-    {g:"Pets",k:"pet",n:"Cyber-Mastiff",c:65,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Cyber-Mastiff",c:65,note:"added to the roster automatically"}
   ]
 },
 
@@ -2993,7 +3021,7 @@ goliath:{
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
     {g:"Mounts",k:"wargear",n:"Goliath Mauler",c:100},
 
-    {g:"Pets",k:"pet",n:"Sumpkroc",c:65,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Sumpkroc",c:65,note:"added to the roster automatically"}
   ]
 },
 
@@ -3321,7 +3349,7 @@ malstrain:{
 
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
 
-    {g:"Pets",k:"pet",n:"Malstrain Tyramite",c:70,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Malstrain Tyramite",c:70,note:"added to the roster automatically"}
   ]
 },
 
@@ -3466,7 +3494,7 @@ gsc:{
 
     {g:"Mounts",k:"wargear",n:"Dirt bike",c:35},
 
-    {g:"Pets",k:"pet",n:"Psychic Familiar",c:110,max:1,roles:["Leader","Champion"],note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Psychic Familiar",c:110,max:1,roles:["Leader","Champion"],note:"added to the roster automatically"}
   ]
 },
 
@@ -3629,7 +3657,7 @@ spyres:{
     {g:"Personal equipment",k:"wargear",n:"Photo-lumen",c:15},
     {g:"Personal equipment",k:"wargear",n:"Respirator",c:15},
 
-    {g:"Pets",k:"pet",n:"Caryatid Prime",c:70,note:"also a roster entry"}
+    {g:"Pets",k:"pet",n:"Caryatid Prime",c:70,note:"added to the roster automatically"}
   ]
 },
 outcasts:{
@@ -4125,8 +4153,10 @@ function gscAdapt(f){
   return t;
 }
 function chaosExtras(){
+  /* the familiar rides along so a corrupted gang's Chaos Familiar equipment
+     purchase can resolve to a roster entry (it is never offered for recruit) */
   return GANGS.helots.fighters
-    .filter(f=>f.id==="witch"||f.id==="spawn")
+    .filter(f=>f.id==="witch"||f.id==="spawn"||f.id==="familiar")
     .map(f=>Object.assign({},f,{id:"chaos-"+f.id,chaos:true,list:"helot"}));
 }
 function fighterPoolFor(st){
@@ -4302,7 +4332,9 @@ function groupGear(list){
 function fighterCost(f){
   const t=ftype(f.typeId);
   let c=t.cost;
-  f.gear.forEach(n=>{ const it=item(n,fList(f,t)); if(it) c+=it.c; });
+  /* a pet bought as equipment is costed on its own linked roster entry, so the
+     gear item itself is free here — otherwise it would be counted twice */
+  f.gear.forEach(n=>{ const it=item(n,fList(f,t)); if(it&&it.k!=="pet") c+=it.c; });
   (t.options||[]).forEach(o=>{ if(f.options.includes(o.id)) c+=o.cost; });
   return c;
 }
@@ -4317,7 +4349,7 @@ function ratingOf(st){
     (f.gear||[]).forEach(n=>{
       const fl=fList(f,t);
       const it=epool.find(e=>e.n===n&&(e.list||null)===(fl||null))||epool.find(e=>e.n===n);
-      if(it) c+=it.c;
+      if(it&&it.k!=="pet") c+=it.c;   /* pets are costed on their own roster entry */
     });
     (t.options||[]).forEach(o=>{ if((f.options||[]).indexOf(o.id)>-1) c+=o.cost; });
     return sum+c;
@@ -4338,7 +4370,7 @@ function render(){
   document.getElementById("brandTitle").textContent=state.gangName||"Underhive Roster";
   document.querySelector(".brand .eyebrow").textContent=`${g.name} \u2013 Gang Roster`;
   document.getElementById("recruitSub").textContent=g.name;
-  renderRecruit(); sortRoster(); renderRoster(); renderReadout(); renderSummary(); renderAlerts(); renderStatic(); renderRef(); renderGangs();
+  syncPets(); renderRecruit(); sortRoster(); renderRoster(); renderReadout(); renderSummary(); renderAlerts(); renderStatic(); renderRef(); renderGangs();
   save();
   applyFilters();
   if(pickerFor) placePicker();
@@ -4379,6 +4411,7 @@ function renderRecruit(){
   let html="";
   const pool=fighterPool();
   ROLE_ORDER.forEach(role=>{
+    if(role==="Pet") return;   /* pets are bought as equipment on a fighter, never recruited */
     const list=pool.filter(f=>f.role===role);
     if(!list.length) return;
     html+=`<div class="recruit-group">${role}</div>`;
@@ -4505,16 +4538,32 @@ function skillsOf(f,t){
    and a value band spread across the whole width. Stats sit in three gentle
    groups (the eight combat stats, Sv, the four mental stats), with a thin
    divider line between Sv and Ld. Type and XP live in the Fighter rule line. */
-function statTable(f,t){
-  const s=augmentStats(statsOf(f,t),f,t);
+/* advancement / injury deltas: f.adv holds a per-stat integer shift applied on
+   top of the printed profile. Only plainly numeric values (3, 3+, 5") can
+   shift; dice expressions and dashes are left alone. */
+function advApply(s,f){
+  if(!f||!f.adv) return s;
+  const out=Object.assign({},s);
+  Object.keys(f.adv).forEach(k=>{
+    const d=f.adv[k]|0; if(!d) return;
+    const m=String(out[k]==null?"":out[k]).match(/^(\d+)("|\+)?$/); if(!m) return;
+    out[k]=Math.max(m[2]==="+"?2:1,parseInt(m[1],10)+d)+(m[2]||"");
+  });
+  return out;
+}
+function statTable(f,t,edit){
+  const s=advApply(augmentStats(statsOf(f,t),f,t),f);
+  const base=augmentStats(statsOf(f,t),f,t);
   const keys=["M","WS","BS","S","T","W","I","A","Sv","Ld","Cl","Wil","Int"];
   const cls=k=>"sf"+(k==="Sv"?" sf-b":"");
+  const canAdj=k=>edit&&/^(\d+)("|\+)?$/.test(String(base[k]==null?"":base[k]));
+  const adj=k=>`<span class="adj"><button class="adjb" data-statup="${f.uid}|${k}" aria-label="Raise ${k}" title="Raise ${k} (advancement or injury)">&#9652;</button><button class="adjb" data-statdn="${f.uid}|${k}" aria-label="Lower ${k}" title="Lower ${k} (advancement or injury)">&#9662;</button></span>`;
   /* a free-standing divider after Sv sits dead-centre in the flex gap */
-  const row=(rc,get)=>`<div class="sf-row ${rc}">${keys.map(k=>
-    `<span class="${cls(k)}">${get(k)}</span>${k==="Sv"?'<span class="sf-line"></span>':""}`).join("")}</div>`;
-  return `<div class="statfold">${row("sf-head",k=>k)}${row("sf-val",k=>s[k])}</div>`;
+  const row=(rc,get,arrows)=>`<div class="sf-row ${rc}">${keys.map(k=>
+    `<span class="${cls(k)}${arrows&&f.adv&&(f.adv[k]|0)?" mod":""}">${get(k)}${arrows&&canAdj(k)?adj(k):""}</span>${k==="Sv"?'<span class="sf-line"></span>':""}`).join("")}</div>`;
+  return `<div class="statfold${edit?" editable":""}">${row("sf-head",k=>k)}${row("sf-val",k=>s[k],true)}</div>`;
 }
-const foldStatBox=statTable;
+const foldStatBox=(f,t)=>statTable(f,t,false);
 
 function traitCells(tr){
   if(!tr||tr==="-") return "-";
@@ -4796,7 +4845,9 @@ const PORTRAITS={
 function portraitSrc(f){
   if(!f) return "";
   if(f.portrait) return f.portrait;
-  const id=f.typeId;
+  /* corrupted-cult fighters carry prefixed type ids (chaos-witch, gsc-familiar,
+     mal-tyramite); art is keyed by the source gang's plain id */
+  const id=(f.typeId||"").replace(/^(?:chaos|gsc|mal)-/,"");
   if(!id) return "";
   const own=state&&state.gangId;
   if(own&&PORTRAITS[own]&&PORTRAITS[own][id]) return PORTRAITS[own][id];
@@ -4910,6 +4961,9 @@ function card(f){
     if(s) skillNotes.push([label,`${s.t} <i>(${s.who} only)</i>`]);
   };
   const tags=[];
+  const owner=f.petOf?state.fighters.find(x=>x.uid===f.petOf):null;
+  const petCls=f.petOf?" petcard":"";
+  if(owner) tags.push(`<span class="chip fixed"><b>Pet</b> bonded to ${escHtml(owner.name)}</span>`);
   (t.grantedSkills||[]).forEach(n=>addSkill(n,n));
   if(f.specialism){
     const sn=SPEC_SKILLS[f.specialism];
@@ -4969,7 +5023,7 @@ function card(f){
           title="Expand this card" aria-label="Expand ${escAttr(f.name)}">${escHtml(f.name)}</button>
         <span class="card-cost">${fighterCost(f)}</span>
       </div>`;
-    return `<article class="card folded" data-uid="${f.uid}"${cardStyle(f)}>${portraitCell(f,{static:true})}${foldedBar}
+    return `<article class="card folded${petCls}" data-uid="${f.uid}"${cardStyle(f)}>${portraitCell(f,{static:true})}${foldedBar}
       <div class="card-body">
         ${foldStatBox(f,t)}
         ${wtable}
@@ -4979,15 +5033,15 @@ function card(f){
     </article>`;
   }
 
-  return `<article class="card" data-uid="${f.uid}"${cardStyle(f)}>
+  return `<article class="card${petCls}" data-uid="${f.uid}"${cardStyle(f)}>
     ${portraitCell(f)}
     ${bar}
     <div class="card-body">
-      ${statTable(f,t)}
+      ${statTable(f,t,true)}
       <div class="speclist">
         <span class="spec"><b>Fighter</b> ${t.name}</span>
         <span class="spec"><b>Type</b> ${t.type}</span>
-        <span class="spec"><b>XP</b> ${t.xp}${nextAdvance(t.xp)?` <span class="dim">/ ${nextAdvance(t.xp)}</span>`:""}</span>
+        <span class="spec"><b>XP</b> <span class="${f.xpMod?"mod":""}">${(t.xp||0)+(f.xpMod|0)}</span><span class="adj adj-xp"><button class="adjb" data-xpup="${f.uid}" aria-label="Add XP" title="Add XP">&#9652;</button><button class="adjb" data-xpdn="${f.uid}" aria-label="Remove XP" title="Remove XP">&#9662;</button></span>${nextAdvance((t.xp||0)+(f.xpMod|0))?` <span class="dim">/ ${nextAdvance((t.xp||0)+(f.xpMod|0))}</span>`:""}</span>
         <span class="spec"><b>Skill Access</b> ${skills||"none listed"}</span>
         ${t.buys?`<span class="spec"><b>Weapon slots</b> ${slotsUsed(f)} of ${slotLimitFor(f,t)}</span>`:""}
       </div>
@@ -5006,7 +5060,7 @@ function card(f){
         ${(t.profiles&&t.profiles.length>1)?`<button class="mini" data-drawer="${f.uid}|profile" aria-expanded="${openDrawer===f.uid+"|profile"}">Profile</button>`:""}
         ${(archetypesOf()&&t.archRole&&t.archRole!=="scum")?`<button class="mini" data-drawer="${f.uid}|arch" aria-expanded="${openDrawer===f.uid+"|arch"}">Archetype</button>`:""}
         ${(hasWyrd(f,t)&&wyrdSetsFor(t).length)?`<button class="mini" data-drawer="${f.uid}|wyrd" aria-expanded="${openDrawer===f.uid+"|wyrd"}">Wyrd power</button>`:""}
-        <button class="mini" data-dupe="${f.uid}">Duplicate</button>
+        ${f.petOf?"":`<button class="mini" data-dupe="${f.uid}">Duplicate</button>`}
       </div>
       ${drawer(f,t)}
     </div></article>`;
@@ -5356,11 +5410,68 @@ function roleIndex(role){
 }
 function sortRoster(){
   const G=fighterPool();
-  state.fighters.sort((a,b)=>{
+  /* linked pets stay glued beneath their owner; everything else sorts by role */
+  const main=state.fighters.filter(f=>!f.petOf);
+  main.sort((a,b)=>{
     const ta=ftype(a.typeId), tb=ftype(b.typeId);
     if(!ta||!tb) return 0;
     const d=roleIndex(ta.role)-roleIndex(tb.role);
     return d!==0?d:G.indexOf(ta)-G.indexOf(tb);
+  });
+  const out=[];
+  main.forEach(f=>{
+    out.push(f);
+    state.fighters.forEach(p=>{ if(p.petOf===f.uid) out.push(p); });
+  });
+  state.fighters.forEach(p=>{ if(out.indexOf(p)===-1) out.push(p); });
+  state.fighters=out;
+}
+
+/* ---- pets as equipment --------------------------------------------------
+   Pets are never recruited directly: buying a pet item on a fighter creates a
+   linked roster entry (f.petOf = the owner's uid) directly below the owner,
+   and removing either side removes both. syncPets() reconciles the roster
+   against the gear lists on every render, which also covers duplication,
+   owner deletion and imports of older rosters in one place. */
+function petTypeByName(n){
+  return fighterPool().find(t=>t.role==="Pet"&&t.name===n)
+      || [].concat(chaosExtras(),gscExtras(),malExtras()).find(t=>t.role==="Pet"&&t.name===n)
+      || null;
+}
+function syncPets(){
+  if(!state) return;
+  const wanted=[];
+  state.fighters.forEach(o=>{
+    if(o.petOf) return;
+    const t=ftype(o.typeId); if(!t) return;
+    const FL=fList(o,t);
+    o.gear.forEach(n=>{
+      const it=item(n,FL);
+      if(it&&it.k==="pet"){
+        const pt=petTypeByName(n);
+        if(pt) wanted.push({owner:o.uid,typeId:pt.id});
+      }
+    });
+  });
+  /* keep linked pets that still match a pet item on their owner */
+  const keep=new Set();
+  state.fighters.forEach(p=>{
+    if(!p.petOf) return;
+    const i=wanted.findIndex(w=>w.owner===p.petOf&&w.typeId===p.typeId);
+    if(i>-1){ wanted.splice(i,1); keep.add(p.uid); }
+  });
+  /* adopt matching stand-alone pets from older rosters before creating new ones */
+  for(let i=0;i<wanted.length;i++){
+    const w=wanted[i];
+    const stray=state.fighters.find(p=>!p.petOf&&p.typeId===w.typeId&&!keep.has(p.uid)
+      &&(ftype(p.typeId)||{}).role==="Pet");
+    if(stray){ stray.petOf=w.owner; keep.add(stray.uid); wanted.splice(i,1); i--; }
+  }
+  state.fighters=state.fighters.filter(f=>!f.petOf||keep.has(f.uid));
+  wanted.forEach(w=>{
+    const t=ftype(w.typeId);
+    state.fighters.push({uid:uid(),typeId:w.typeId,name:t.name,gear:[],options:[],skill:null,
+      specialism:"",augs:{},augChoice:{},killCount:0,glitchCount:0,legacy:t.legacyFixed||null,petOf:w.owner});
   });
 }
 
@@ -5603,8 +5714,31 @@ document.addEventListener("click",e=>{
     }
   }
 
-  const el=e.target.closest("[data-add],[data-remove],[data-dupe],[data-drawer],[data-drop],[data-trait],[data-inc],[data-dec],[data-freset],[data-fold]");
+  const el=e.target.closest("[data-add],[data-remove],[data-dupe],[data-drawer],[data-drop],[data-trait],[data-inc],[data-dec],[data-freset],[data-fold],[data-statup],[data-statdn],[data-xpup],[data-xpdn]");
   if(!el) return;
+  if(el.dataset.statup||el.dataset.statdn){
+    const raw=el.dataset.statup||el.dataset.statdn, i=raw.indexOf("|");
+    const f=state.fighters.find(x=>x.uid===raw.slice(0,i)), k=raw.slice(i+1);
+    if(!f) return;
+    const t=ftype(f.typeId);
+    const m=String(augmentStats(statsOf(f,t),f,t)[k]==null?"":augmentStats(statsOf(f,t),f,t)[k]).match(/^(\d+)("|\+)?$/);
+    if(!m) return;
+    f.adv=f.adv||{};
+    const next=parseInt(m[1],10)+(f.adv[k]|0)+(el.dataset.statup?1:-1);
+    if(next<(m[2]==="+"?2:1)||next>25) return;   /* keep the value sane */
+    f.adv[k]=(f.adv[k]|0)+(el.dataset.statup?1:-1);
+    if(!f.adv[k]) delete f.adv[k];
+    return render();
+  }
+  if(el.dataset.xpup||el.dataset.xpdn){
+    const f=state.fighters.find(x=>x.uid===(el.dataset.xpup||el.dataset.xpdn));
+    if(!f) return;
+    const t=ftype(f.typeId);
+    if((t.xp||0)+(f.xpMod|0)+(el.dataset.xpup?1:-1)<0) return;
+    f.xpMod=(f.xpMod|0)+(el.dataset.xpup?1:-1);
+    if(!f.xpMod) delete f.xpMod;
+    return render();
+  }
   if(el.dataset.inc||el.dataset.dec){
     const raw=el.dataset.inc||el.dataset.dec;
     const i=raw.indexOf("|");
@@ -5632,6 +5766,16 @@ document.addEventListener("click",e=>{
   }
   if(el.dataset.add) return addFighter(el.dataset.add);
   if(el.dataset.remove){
+    /* deleting a linked pet card also unequips the pet item from its owner,
+       otherwise syncPets would simply recreate the entry */
+    const gone=state.fighters.find(f=>f.uid===el.dataset.remove);
+    if(gone&&gone.petOf){
+      const o=state.fighters.find(x=>x.uid===gone.petOf), pt=ftype(gone.typeId);
+      if(o&&pt){
+        const at=o.gear.lastIndexOf(pt.name);
+        if(at>-1) o.gear.splice(at,1);
+      }
+    }
     state.fighters=state.fighters.filter(f=>f.uid!==el.dataset.remove);
     if(openDrawer&&openDrawer.startsWith(el.dataset.remove)) openDrawer=null;
     return render();
